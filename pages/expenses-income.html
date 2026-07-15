@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expenses & Income — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/farmer.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <!-- Expense Modal -->
+    <div class="modal-overlay" id="expenseModal">
+      <div class="modal">
+        <h3 id="expenseModalTitle">Add Expense</h3>
+        <form onsubmit="saveExpense(event)">
+          <input type="hidden" id="expenseEditId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="expenseDate" required />
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <select id="expenseCategory">
+                <option>Seeds</option><option>Fertilizer</option><option>Labor</option><option>Equipment</option><option>Feed</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Amount (₵)</label>
+            <input type="number" id="expenseAmount" required min="0" step="0.01" placeholder="0.00" />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="expenseDesc" rows="2" placeholder="What was this expense for?"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" onclick="closeExpenseModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Expense</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Income Modal -->
+    <div class="modal-overlay" id="incomeModal">
+      <div class="modal">
+        <h3 id="incomeModalTitle">Add Income</h3>
+        <form onsubmit="saveIncome(event)">
+          <input type="hidden" id="incomeEditId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="incomeDate" required />
+            </div>
+            <div class="form-group">
+              <label>Source</label>
+              <select id="incomeSource">
+                <option>Crop Sales</option><option>Livestock Sales</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Amount (₵)</label>
+            <input type="number" id="incomeAmount" required min="0" step="0.01" placeholder="0.00" />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="incomeDesc" rows="2" placeholder="Details about this income..."></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-outline" onclick="closeIncomeModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Income</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      let currentTab = 'expenses';
+
+      const content = `
+        <p class="text-soft mb-3">Track your farm expenses and income</p>
+
+        <div class="grid grid-3 mb-4" id="financeStats"></div>
+
+        <div class="tabs">
+          <div class="tab active" id="tabExpenses" onclick="switchTab('expenses')">Expenses</div>
+          <div class="tab" id="tabIncome" onclick="switchTab('income')">Income</div>
+        </div>
+
+        <div id="expensesPanel">
+          <div class="flex-between mb-3">
+            <h3>Expense Records</h3>
+            <button class="btn btn-primary" onclick="openExpenseModal()">+ Add Expense</button>
+          </div>
+          <div class="card"><div id="expenseList"></div></div>
+        </div>
+
+        <div id="incomePanel" style="display:none">
+          <div class="flex-between mb-3">
+            <h3>Income Records</h3>
+            <button class="btn btn-primary" onclick="openIncomeModal()">+ Add Income</button>
+          </div>
+          <div class="card"><div id="incomeList"></div></div>
+        </div>
+      `;
+      initFarmerPage('/pages/expenses-income.html', 'Expenses & Income', content);
+
+      renderFinance();
+
+      function renderFinance() {
+        const expenses = Store.expenses();
+        const income = Store.income();
+
+        const totalExpenses = expenses.reduce((s, e) => s + (e.amount || 0), 0);
+        const totalIncome = income.reduce((s, i) => s + (i.amount || 0), 0);
+        const netProfit = totalIncome - totalExpenses;
+
+        document.getElementById('financeStats').innerHTML = `
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--error-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--error-500)" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="stat-value">${fmtMoney(totalExpenses)}</div><div class="stat-label">Total Expenses</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--success-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="stat-value">${fmtMoney(totalIncome)}</div><div class="stat-label">Total Income</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:${netProfit >= 0 ? 'var(--primary-100)' : 'var(--warning-50)'}"><svg viewBox="0 0 24 24" fill="none" stroke="${netProfit >= 0 ? 'var(--primary-600)' : 'var(--warning-600)'}" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div><div><div class="stat-value" style="color:${netProfit >= 0 ? 'var(--primary-600)' : 'var(--warning-600)'}">${fmtMoney(netProfit)}</div><div class="stat-label">Net Profit</div></div></div>
+        `;
+
+        renderExpenses();
+        renderIncome();
+      }
+
+      function renderExpenses() {
+        const expenses = Store.expenses();
+        if (expenses.length === 0) {
+          document.getElementById('expenseList').innerHTML = emptyState('No expenses recorded', 'Track your farm expenses by adding your first record.', null, null);
+          return;
+        }
+        const sorted = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+        document.getElementById('expenseList').innerHTML = `
+          <div class="table-wrap"><table>
+            <thead><tr><th>Date</th><th>Category</th><th>Amount</th><th>Description</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${sorted.map(e => `
+                <tr>
+                  <td>${e.date || '—'}</td>
+                  <td><span class="badge badge-primary">${e.category}</span></td>
+                  <td style="color:var(--error-500);font-weight:600">${fmtMoney(e.amount)}</td>
+                  <td class="text-sm text-soft">${e.description || '—'}</td>
+                  <td>
+                    <button class="btn btn-ghost btn-sm" onclick="editExpense(${e.id})">Edit</button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--error-500)" onclick="deleteExpense(${e.id})">Delete</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table></div>
+        `;
+      }
+
+      function renderIncome() {
+        const income = Store.income();
+        if (income.length === 0) {
+          document.getElementById('incomeList').innerHTML = emptyState('No income recorded', 'Track your farm income by adding your first record.', null, null);
+          return;
+        }
+        const sorted = [...income].sort((a, b) => new Date(b.date) - new Date(a.date));
+        document.getElementById('incomeList').innerHTML = `
+          <div class="table-wrap"><table>
+            <thead><tr><th>Date</th><th>Source</th><th>Amount</th><th>Description</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${sorted.map(i => `
+                <tr>
+                  <td>${i.date || '—'}</td>
+                  <td><span class="badge badge-success">${i.source}</span></td>
+                  <td style="color:var(--success-600);font-weight:600">${fmtMoney(i.amount)}</td>
+                  <td class="text-sm text-soft">${i.description || '—'}</td>
+                  <td>
+                    <button class="btn btn-ghost btn-sm" onclick="editIncome(${i.id})">Edit</button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--error-500)" onclick="deleteIncome(${i.id})">Delete</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table></div>
+        `;
+      }
+
+      function switchTab(tab) {
+        currentTab = tab;
+        if (tab === 'expenses') {
+          document.getElementById('tabExpenses').classList.add('active');
+          document.getElementById('tabIncome').classList.remove('active');
+          document.getElementById('expensesPanel').style.display = 'block';
+          document.getElementById('incomePanel').style.display = 'none';
+        } else {
+          document.getElementById('tabExpenses').classList.remove('active');
+          document.getElementById('tabIncome').classList.add('active');
+          document.getElementById('expensesPanel').style.display = 'none';
+          document.getElementById('incomePanel').style.display = 'block';
+        }
+      }
+
+      // ---- Expense CRUD ----
+      function openExpenseModal() {
+        document.getElementById('expenseEditId').value = '';
+        document.getElementById('expenseModalTitle').textContent = 'Add Expense';
+        document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('expenseCategory').value = 'Seeds';
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseDesc').value = '';
+        document.getElementById('expenseModal').classList.add('show');
+      }
+
+      function closeExpenseModal() {
+        document.getElementById('expenseModal').classList.remove('show');
+      }
+
+      function editExpense(id) {
+        const expenses = Store.expenses();
+        const e = expenses.find(x => x.id === id);
+        if (!e) return;
+        document.getElementById('expenseEditId').value = e.id;
+        document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
+        document.getElementById('expenseDate').value = e.date || '';
+        document.getElementById('expenseCategory').value = e.category || 'Seeds';
+        document.getElementById('expenseAmount').value = e.amount;
+        document.getElementById('expenseDesc').value = e.description || '';
+        document.getElementById('expenseModal').classList.add('show');
+      }
+
+      function deleteExpense(id) {
+        if (!confirm('Delete this expense record?')) return;
+        Store.saveExpenses(Store.expenses().filter(e => e.id !== id));
+        toast('Expense deleted');
+        renderFinance();
+      }
+
+      function saveExpense(e) {
+        e.preventDefault();
+        const expenses = Store.expenses();
+        const editId = document.getElementById('expenseEditId').value;
+        const data = {
+          date: document.getElementById('expenseDate').value,
+          category: document.getElementById('expenseCategory').value,
+          amount: parseFloat(document.getElementById('expenseAmount').value),
+          description: document.getElementById('expenseDesc').value,
+        };
+        if (editId) {
+          const item = expenses.find(x => x.id === parseInt(editId));
+          Object.assign(item, data);
+          toast('Expense updated');
+        } else {
+          data.id = Date.now();
+          expenses.push(data);
+          toast('Expense added');
+        }
+        Store.saveExpenses(expenses);
+        closeExpenseModal();
+        renderFinance();
+      }
+
+      // ---- Income CRUD ----
+      function openIncomeModal() {
+        document.getElementById('incomeEditId').value = '';
+        document.getElementById('incomeModalTitle').textContent = 'Add Income';
+        document.getElementById('incomeDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('incomeSource').value = 'Crop Sales';
+        document.getElementById('incomeAmount').value = '';
+        document.getElementById('incomeDesc').value = '';
+        document.getElementById('incomeModal').classList.add('show');
+      }
+
+      function closeIncomeModal() {
+        document.getElementById('incomeModal').classList.remove('show');
+      }
+
+      function editIncome(id) {
+        const income = Store.income();
+        const i = income.find(x => x.id === id);
+        if (!i) return;
+        document.getElementById('incomeEditId').value = i.id;
+        document.getElementById('incomeModalTitle').textContent = 'Edit Income';
+        document.getElementById('incomeDate').value = i.date || '';
+        document.getElementById('incomeSource').value = i.source || 'Crop Sales';
+        document.getElementById('incomeAmount').value = i.amount;
+        document.getElementById('incomeDesc').value = i.description || '';
+        document.getElementById('incomeModal').classList.add('show');
+      }
+
+      function deleteIncome(id) {
+        if (!confirm('Delete this income record?')) return;
+        Store.saveIncome(Store.income().filter(i => i.id !== id));
+        toast('Income deleted');
+        renderFinance();
+      }
+
+      function saveIncome(e) {
+        e.preventDefault();
+        const income = Store.income();
+        const editId = document.getElementById('incomeEditId').value;
+        const data = {
+          date: document.getElementById('incomeDate').value,
+          source: document.getElementById('incomeSource').value,
+          amount: parseFloat(document.getElementById('incomeAmount').value),
+          description: document.getElementById('incomeDesc').value,
+        };
+        if (editId) {
+          const item = income.find(x => x.id === parseInt(editId));
+          Object.assign(item, data);
+          toast('Income updated');
+        } else {
+          data.id = Date.now();
+          income.push(data);
+          toast('Income added');
+        }
+        Store.saveIncome(income);
+        closeIncomeModal();
+        renderFinance();
+      }
+    </script>
+  </body>
+</html>

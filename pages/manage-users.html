@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Users — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/admin.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      let searchQuery = '';
+      let roleFilter = 'all';
+
+      const content = `
+        <div class="flex-between mb-3" style="flex-wrap:wrap;gap:1rem">
+          <p class="text-soft">Manage all platform users — farmers, buyers, and admins</p>
+          <div class="flex gap-1" style="flex-wrap:wrap;align-items:center">
+            <input type="text" id="userSearch" placeholder="Search by name or email..." style="padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius);font-size:0.875rem;min-width:220px" oninput="onSearch(event)" />
+            <select id="roleFilter" style="padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius);font-size:0.875rem" onchange="onRoleFilter(event)">
+              <option value="all">All Roles</option>
+              <option value="Farmer">Farmer</option>
+              <option value="Consumer">Consumer</option>
+              <option value="Wholesaler">Wholesaler</option>
+              <option value="Retailer">Retailer</option>
+              <option value="Factory">Factory</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="card">
+          <div id="usersTable"></div>
+        </div>
+      `;
+      initAdminPage('/pages/manage-users.html', 'Manage Users', content);
+
+      renderUsers();
+
+      function onSearch(e) {
+        searchQuery = e.target.value.toLowerCase();
+        renderUsers();
+      }
+
+      function onRoleFilter(e) {
+        roleFilter = e.target.value;
+        renderUsers();
+      }
+
+      function renderUsers() {
+        let users = Store.users();
+
+        // Apply role filter
+        if (roleFilter !== 'all') {
+          users = users.filter(u => (u.role || 'Consumer') === roleFilter);
+        }
+
+        // Apply search
+        if (searchQuery) {
+          users = users.filter(u =>
+            (u.name || '').toLowerCase().includes(searchQuery) ||
+            (u.email || '').toLowerCase().includes(searchQuery)
+          );
+        }
+
+        if (users.length === 0) {
+          document.getElementById('usersTable').innerHTML = emptyState('No users found', 'Users who register on the platform will appear here. Try adjusting your search or filters.', null, null);
+          return;
+        }
+
+        document.getElementById('usersTable').innerHTML = `
+          <div class="table-wrap"><table>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${users.map(u => `
+                <tr>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:0.5rem">
+                      <div class="avatar" style="width:32px;height:32px;font-size:0.8rem;background:var(--primary-100);color:var(--primary-700)">${(u.name || 'U').charAt(0)}</div>
+                      <strong>${u.name || 'Unknown'}</strong>
+                    </div>
+                  </td>
+                  <td class="text-sm">${u.email || '—'}</td>
+                  <td><span class="badge ${roleBadge(u.role)}">${u.role || 'Consumer'}</span></td>
+                  <td><span class="badge ${statusBadge(u.status)}">${(u.status || 'active').charAt(0).toUpperCase() + (u.status || 'active').slice(1)}</span></td>
+                  <td class="text-sm text-soft">${u.joined ? new Date(u.joined).toLocaleDateString('en-GH') : '—'}</td>
+                  <td>
+                    <div class="flex gap-1">
+                      ${u.status === 'pending'
+                        ? `<button class="btn btn-primary btn-sm" onclick="approveUser(${u.id})">Approve</button>`
+                        : `<button class="btn btn-ghost btn-sm" onclick="approveUser(${u.id})">Activate</button>`
+                      }
+                      ${u.status === 'suspended'
+                        ? `<button class="btn btn-ghost btn-sm" onclick="approveUser(${u.id})">Restore</button>`
+                        : `<button class="btn btn-ghost btn-sm" style="color:var(--error-500)" onclick="suspendUser(${u.id})">Suspend</button>`
+                      }
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table></div>
+        `;
+      }
+
+      function roleBadge(role) {
+        const r = (role || 'Consumer').toLowerCase();
+        if (r === 'admin') return 'badge-error';
+        if (r === 'farmer') return 'badge-primary';
+        if (r === 'wholesaler' || r === 'retailer') return 'badge-accent';
+        if (r === 'factory') return 'badge-neutral';
+        return 'badge-success';
+      }
+
+      function statusBadge(status) {
+        const s = (status || 'active').toLowerCase();
+        if (s === 'pending') return 'badge-warning';
+        if (s === 'suspended') return 'badge-error';
+        return 'badge-success';
+      }
+
+      function approveUser(id) {
+        const users = Store.users();
+        const user = users.find(u => u.id === id);
+        if (!user) return;
+        user.status = 'active';
+        Store.saveUsers(users);
+        toast('User approved and activated');
+        renderUsers();
+      }
+
+      function suspendUser(id) {
+        if (!confirm('Suspend this user? They will lose access to the platform.')) return;
+        const users = Store.users();
+        const user = users.find(u => u.id === id);
+        if (!user) return;
+        user.status = 'suspended';
+        Store.saveUsers(users);
+        toast('User suspended');
+        renderUsers();
+      }
+    </script>
+  </body>
+</html>

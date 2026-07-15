@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FAQ — AgriMarket Ghana</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <style>
+      .faq-item{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.75rem;overflow:hidden;transition:box-shadow 0.2s}
+      .faq-item:hover{box-shadow:var(--shadow)}
+      .faq-question{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;cursor:pointer;font-weight:600;font-size:0.95rem;background:var(--white);transition:background 0.2s}
+      .faq-question:hover{background:var(--neutral-50)}
+      .faq-toggle{width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--primary-600);transition:transform 0.3s}
+      .faq-item.open .faq-toggle{transform:rotate(45deg)}
+      .faq-answer{max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s ease;padding:0 1.25rem}
+      .faq-item.open .faq-answer{max-height:400px;padding:0 1.25rem 1rem}
+      .faq-answer p{color:var(--text-soft);font-size:0.9rem;line-height:1.6}
+    </style>
+  </head>
+  <body>
+    <div id="nav"></div>
+
+    <!-- Page Header -->
+    <section class="page-header">
+      <div class="container">
+        <h1>Frequently Asked Questions</h1>
+        <p>Find answers to common questions about AgriMarket Ghana</p>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="container" style="padding:3rem 1rem;max-width:800px">
+      <div id="faqList"></div>
+
+      <!-- Still have questions -->
+      <div class="card text-center mt-3" style="margin-top:2rem">
+        <h3>Still Have Questions?</h3>
+        <p class="text-soft mt-1">Can't find the answer you're looking for? Our support team is here to help.</p>
+        <div class="flex gap-1" style="justify-content:center;flex-wrap:wrap;margin-top:1rem">
+          <a href="/pages/contact.html" class="btn btn-primary">Contact Support</a>
+          <a href="/pages/register.html" class="btn btn-outline">Register Now</a>
+        </div>
+      </div>
+    </section>
+
+    <div id="footer"></div>
+
+    <script>
+      mountLayout('faq');
+
+      const faqs = [
+        { q: 'What is AgriMarket Ghana?', a: 'AgriMarket Ghana is a digital agricultural marketplace that connects farmers, wholesalers, retailers, factories, and consumers across Ghana. Our platform allows farmers to sell their produce directly to buyers, eliminating middlemen and ensuring fair prices for everyone.' },
+        { q: 'How do I register on AgriMarket?', a: 'Simply visit our registration page, choose your role (Farmer, Wholesaler, Retailer, Factory, or Consumer), fill in your details including name, email, phone number, business name, location, and password. Once registered, you\'ll be redirected to your role-specific dashboard.' },
+        { q: 'Is it free to join AgriMarket?', a: 'Yes! Creating an account on AgriMarket Ghana is completely free for all users. There are no registration fees or monthly subscriptions. You only pay for the products you purchase as a buyer.' },
+        { q: 'What roles can I register as?', a: 'You can register as one of five roles: Farmer (sell your produce), Wholesaler (buy in bulk), Retailer (stock your shop), Factory (procure raw materials), or Consumer (buy fresh produce). Choose the role that best fits your needs.' },
+        { q: 'How do I list my products as a farmer?', a: 'After registering as a Farmer, log in to your dashboard and navigate to the Inventory section. Click "Add Item" to list your products with details like name, category, quantity, unit, price, and an optional image. Your products will be visible to buyers on the marketplace.' },
+        { q: 'How do payments work?', a: 'Buyers can pay for orders through our secure checkout process. We support mobile money (MTN MoMo, Vodafone Cash, AirtelTigo Money) and card payments. Farmers receive payment once the order is confirmed and delivered.' },
+        { q: 'What are the shipping costs?', a: 'Shipping costs ₵15 for orders below ₵200. Orders above ₵200 qualify for free shipping. We deliver to all 16 regions of Ghana. Delivery times vary by location, typically 1-3 business days.' },
+        { q: 'Can I track my order?', a: 'Yes! Once your order is placed, you can track it in real-time from your dashboard. Go to the "Track Order" section to see the current status — from processing to delivery.' },
+        { q: 'What if I have an issue with my order?', a: 'If you encounter any issues with your order — such as damaged goods or incorrect items — please contact our support team immediately through the Contact page. We\'ll work to resolve the issue as quickly as possible.' },
+        { q: 'Which regions of Ghana do you cover?', a: 'AgriMarket Ghana operates in all 16 regions: Greater Accra, Ashanti, Western, Eastern, Central, Northern, Volta, Brong-Ahafo, Upper East, Upper West, Western North, Oti, Bono East, Ahafo, Savannah, and North East.' },
+      ];
+
+      document.getElementById('faqList').innerHTML = faqs.map((faq, i) => `
+        <div class="faq-item" id="faq-${i}">
+          <div class="faq-question" onclick="toggleFaq(${i})">
+            <span>${faq.q}</span>
+            <span class="faq-toggle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </span>
+          </div>
+          <div class="faq-answer">
+            <p>${faq.a}</p>
+          </div>
+        </div>
+      `).join('');
+
+      function toggleFaq(i) {
+        const item = document.getElementById('faq-' + i);
+        item.classList.toggle('open');
+      }
+    </script>
+  </body>
+</html>

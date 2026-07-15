@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/admin.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      let activeTab = 'general';
+
+      const SETTINGS_KEY = 'agrimarket_settings';
+      function getSettings() {
+        try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; }
+      }
+      function saveSettings(s) {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+      }
+
+      const defaultSettings = {
+        platformName: 'AgriMarket Ghana',
+        supportEmail: 'support@agrimarket.gh',
+        commissionRate: 5,
+        currency: 'GHS',
+        minOrderValue: 20,
+        mobileMoney: true,
+        bankTransfer: true,
+        cashOnDelivery: true,
+        cardPayment: false,
+        newOrderAlerts: true,
+        lowStockAlerts: true,
+        userSignupAlerts: true,
+        weeklyReports: false,
+        twoFactor: false,
+        sessionTimeout: 30,
+        passwordExpiry: 90,
+        ipWhitelist: '',
+      };
+
+      const content = `
+        <div class="flex gap-1 mb-4" id="tabs" style="flex-wrap:wrap;border-bottom:2px solid var(--border)"></div>
+        <div id="tabContent"></div>
+      `;
+      initAdminPage('/pages/admin-settings.html', 'Settings', content);
+
+      renderTabs();
+      renderTabContent();
+
+      function renderTabs() {
+        const tabs = [
+          { key: 'general', label: 'General', icon: '⚙️' },
+          { key: 'payments', label: 'Payments', icon: '💳' },
+          { key: 'notifications', label: 'Notifications', icon: '🔔' },
+          { key: 'security', label: 'Security', icon: '🔒' },
+        ];
+        document.getElementById('tabs').innerHTML = tabs.map(t => `
+          <button class="btn btn-sm ${activeTab === t.key ? 'btn-primary' : 'btn-ghost'}" style="border-radius:0;border-bottom:2px solid ${activeTab === t.key ? 'var(--primary-500)' : 'transparent'}margin-bottom:-2px" onclick="setTab('${t.key}')">${t.icon} ${t.label}</button>
+        `).join('');
+      }
+
+      function setTab(key) {
+        activeTab = key;
+        renderTabs();
+        renderTabContent();
+      }
+
+      function renderTabContent() {
+        const s = { ...defaultSettings, ...getSettings() };
+        const el = document.getElementById('tabContent');
+
+        if (activeTab === 'general') {
+          el.innerHTML = `
+            <div class="card" style="max-width:600px">
+              <h3 class="mb-2">General Settings</h3>
+              <form onsubmit="saveGeneral(event)">
+                <div class="form-group">
+                  <label>Platform Name</label>
+                  <input type="text" id="platformName" value="${s.platformName}" required />
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Support Email</label>
+                    <input type="email" id="supportEmail" value="${s.supportEmail}" required />
+                  </div>
+                  <div class="form-group">
+                    <label>Currency</label>
+                    <select id="currency">
+                      <option value="GHS" ${s.currency === 'GHS' ? 'selected' : ''}>Ghana Cedi (₵)</option>
+                      <option value="USD" ${s.currency === 'USD' ? 'selected' : ''}>US Dollar ($)</option>
+                      <option value="EUR" ${s.currency === 'EUR' ? 'selected' : ''}>Euro (€)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Commission Rate (%)</label>
+                    <input type="number" id="commissionRate" value="${s.commissionRate}" min="0" max="50" step="0.5" />
+                  </div>
+                  <div class="form-group">
+                    <label>Minimum Order Value (₵)</label>
+                    <input type="number" id="minOrderValue" value="${s.minOrderValue}" min="0" step="0.01" />
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+              </form>
+            </div>
+          `;
+        } else if (activeTab === 'payments') {
+          el.innerHTML = `
+            <div class="card" style="max-width:600px">
+              <h3 class="mb-2">Payment Settings</h3>
+              <form onsubmit="savePayments(event)">
+                <p class="text-soft text-sm mb-2">Enable the payment methods available to buyers on the platform.</p>
+                <div class="form-group">
+                  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                    <input type="checkbox" id="mobileMoney" ${s.mobileMoney ? 'checked' : ''} style="width:auto" />
+                    <span><strong>Mobile Money</strong> (MTN MoMo, Vodafone Cash, AirtelTigo Money)</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                    <input type="checkbox" id="bankTransfer" ${s.bankTransfer ? 'checked' : ''} style="width:auto" />
+                    <span><strong>Bank Transfer</strong> (Direct deposit to seller accounts)</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                    <input type="checkbox" id="cashOnDelivery" ${s.cashOnDelivery ? 'checked' : ''} style="width:auto" />
+                    <span><strong>Cash on Delivery</strong> (Pay when order arrives)</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                    <input type="checkbox" id="cardPayment" ${s.cardPayment ? 'checked' : ''} style="width:auto" />
+                    <span><strong>Card Payment</strong> (Visa / Mastercard via gateway)</span>
+                  </label>
+                </div>
+                <div class="form-group" style="border-top:1px solid var(--border);padding-top:1rem">
+                  <label>Commission Rate on Transactions (%)</label>
+                  <input type="number" id="payCommissionRate" value="${s.commissionRate}" min="0" max="50" step="0.5" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save Payment Settings</button>
+              </form>
+            </div>
+          `;
+        } else if (activeTab === 'notifications') {
+          el.innerHTML = `
+            <div class="card" style="max-width:600px">
+              <h3 class="mb-2">Notification Settings</h3>
+              <form onsubmit="saveNotifications(event)">
+                <p class="text-soft text-sm mb-2">Choose which platform events trigger admin notifications.</p>
+                <div class="form-group">
+                  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                    <input type="checkbox" id="newOrderAlerts" ${s.newOrderAlerts ? 'checked' : ''} style="width:auto" />
+                    <span><strong>New Order Alerts</strong> — Notify when a buyer places an order</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                    <input type="checkbox" id="lowStockAlerts" ${s.lowStockAlerts ? 'checked' : ''} style="width:auto" />
+                    <span><strong>Low Stock Alerts</strong> — Notify when product stock falls below threshold</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                    <input type="checkbox" id="userSignupAlerts" ${s.userSignupAlerts ? 'checked' : ''} style="width:auto" />
+                    <span><strong>User Signup Alerts</strong> — Notify when a new user registers</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                    <input type="checkbox" id="weeklyReports" ${s.weeklyReports ? 'checked' : ''} style="width:auto" />
+                    <span><strong>Weekly Reports</strong> — Email a summary report every Monday</span>
+                  </label>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Notification Settings</button>
+              </form>
+            </div>
+          `;
+        } else if (activeTab === 'security') {
+          el.innerHTML = `
+            <div class="card" style="max-width:600px">
+              <h3 class="mb-2">Security Settings</h3>
+              <form onsubmit="saveSecurity(event)">
+                <div class="form-group">
+                  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                    <input type="checkbox" id="twoFactor" ${s.twoFactor ? 'checked' : ''} style="width:auto" />
+                    <span><strong>Two-Factor Authentication</strong> — Require 2FA for all admin accounts</span>
+                  </label>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Session Timeout (minutes)</label>
+                    <input type="number" id="sessionTimeout" value="${s.sessionTimeout}" min="5" max="1440" />
+                  </div>
+                  <div class="form-group">
+                    <label>Password Expiry (days)</label>
+                    <input type="number" id="passwordExpiry" value="${s.passwordExpiry}" min="30" max="365" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>IP Whitelist (comma-separated, leave blank to allow all)</label>
+                  <input type="text" id="ipWhitelist" value="${s.ipWhitelist}" placeholder="e.g. 192.168.1.1, 10.0.0.0/24" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save Security Settings</button>
+              </form>
+            </div>
+          `;
+        }
+      }
+
+      function collectSettings() {
+        return getSettings();
+      }
+
+      function saveGeneral(e) {
+        e.preventDefault();
+        const s = getSettings();
+        s.platformName = val('platformName');
+        s.supportEmail = val('supportEmail');
+        s.currency = val('currency');
+        s.commissionRate = parseFloat(val('commissionRate'));
+        s.minOrderValue = parseFloat(val('minOrderValue'));
+        saveSettings(s);
+        toast('General settings saved');
+      }
+
+      function savePayments(e) {
+        e.preventDefault();
+        const s = getSettings();
+        s.mobileMoney = checked('mobileMoney');
+        s.bankTransfer = checked('bankTransfer');
+        s.cashOnDelivery = checked('cashOnDelivery');
+        s.cardPayment = checked('cardPayment');
+        s.commissionRate = parseFloat(val('payCommissionRate'));
+        saveSettings(s);
+        toast('Payment settings saved');
+      }
+
+      function saveNotifications(e) {
+        e.preventDefault();
+        const s = getSettings();
+        s.newOrderAlerts = checked('newOrderAlerts');
+        s.lowStockAlerts = checked('lowStockAlerts');
+        s.userSignupAlerts = checked('userSignupAlerts');
+        s.weeklyReports = checked('weeklyReports');
+        saveSettings(s);
+        toast('Notification settings saved');
+      }
+
+      function saveSecurity(e) {
+        e.preventDefault();
+        const s = getSettings();
+        s.twoFactor = checked('twoFactor');
+        s.sessionTimeout = parseInt(val('sessionTimeout'));
+        s.passwordExpiry = parseInt(val('passwordExpiry'));
+        s.ipWhitelist = val('ipWhitelist');
+        saveSettings(s);
+        toast('Security settings saved');
+      }
+
+      function val(id) {
+        const el = document.getElementById(id);
+        return el ? el.value : '';
+      }
+
+      function checked(id) {
+        const el = document.getElementById(id);
+        return el ? el.checked : false;
+      }
+    </script>
+  </body>
+</html>

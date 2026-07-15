@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Dashboard — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/buyer.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      const content = `
+        <div class="dash-banner" style="background:linear-gradient(135deg,rgba(10,55,25,0.85),rgba(20,90,45,0.7)),url('${PEXELS(264537, 1200, 300)}');background-size:cover;background-position:center;color:#fff;margin-bottom:1.5rem">
+          <div>
+            <h2 style="color:#fff;font-size:1.5rem">Welcome back, <span id="welcomeName">Shopper</span>!</h2>
+            <p style="color:rgba(255,255,255,0.85);font-size:0.9rem;margin-top:0.25rem">Discover fresh produce from local farmers across Ghana.</p>
+          </div>
+          <a href="/pages/marketplace.html" class="btn btn-accent">Shop Now</a>
+        </div>
+
+        <div class="grid grid-4 mb-4" id="buyerStats"></div>
+
+        <div class="grid grid-2 mb-4">
+          <div class="card">
+            <div class="flex-between mb-2">
+              <h3>Recent Orders</h3>
+              <a href="/pages/orders.html" class="text-sm" style="font-weight:600">View all</a>
+            </div>
+            <div id="recentOrders"></div>
+          </div>
+          <div class="card">
+            <div class="flex-between mb-2">
+              <h3>Notifications</h3>
+              <a href="/pages/notifications.html" class="text-sm" style="font-weight:600">View all</a>
+            </div>
+            <div id="buyerNotifs"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="flex-between mb-3">
+            <h3>Recommended Products</h3>
+            <a href="/pages/marketplace.html" class="text-sm" style="font-weight:600">Browse all</a>
+          </div>
+          <div class="grid grid-3" id="recommended"></div>
+        </div>
+      `;
+      initBuyerPage('/pages/buyer-dashboard.html', 'My Dashboard', content);
+
+      renderBuyerDashboard();
+
+      function renderBuyerDashboard() {
+        const user = Auth.get();
+        const orders = Store.orders();
+        const notifs = Store.notifications();
+
+        document.getElementById('welcomeName').textContent = user.name || 'Shopper';
+
+        // Stats
+        const totalSpent = orders.reduce((s, o) => s + (o.total || 0), 0);
+        const totalOrders = orders.length;
+        const delivered = orders.filter(o => o.status === 'Delivered').length;
+        const inProgress = orders.filter(o => o.status !== 'Delivered').length;
+
+        document.getElementById('buyerStats').innerHTML = `
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--primary-100)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-600)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="stat-value">${fmtMoney(totalSpent)}</div><div class="stat-label">Total Spent</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--accent-100)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-600)" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div><div class="stat-value">${totalOrders}</div><div class="stat-label">Total Orders</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--success-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="stat-value">${delivered}</div><div class="stat-label">Delivered</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--warning-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warning-600)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div><div class="stat-value">${inProgress}</div><div class="stat-label">In Progress</div></div></div>
+        `;
+
+        // Recent orders
+        if (orders.length === 0) {
+          document.getElementById('recentOrders').innerHTML = emptyState('No orders yet', 'Start shopping to see your orders here.', '/pages/marketplace.html', 'Browse Marketplace');
+        } else {
+          const recent = [...orders].slice(-4).reverse();
+          document.getElementById('recentOrders').innerHTML = recent.map(o => `
+            <div class="notif-item">
+              <div class="notif-icon" style="background:var(--primary-100);color:var(--primary-600)">📦</div>
+              <div style="flex:1">
+                <div class="flex-between">
+                  <div style="font-weight:600;font-size:0.9rem">Order #${o.id}</div>
+                  <span class="badge ${o.status === 'Delivered' ? 'badge-success' : 'badge-warning'}">${o.status || 'Pending'}</span>
+                </div>
+                <div class="text-sm text-soft">${o.items ? o.items.length : 0} item(s) · ${fmtMoney(o.total || 0)}</div>
+                ${o.date ? `<div class="text-sm text-muted mt-1">${o.date}</div>` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // Notifications
+        if (notifs.length === 0) {
+          document.getElementById('buyerNotifs').innerHTML = emptyState('No notifications', 'You have no notifications yet.', null, null);
+        } else {
+          const recent = notifs.slice(-4).reverse();
+          document.getElementById('buyerNotifs').innerHTML = recent.map(n => {
+            const iconColor = n.type === 'success' ? 'var(--success-100)' : n.type === 'warning' ? 'var(--warning-100)' : 'var(--primary-100)';
+            const iconText = n.type === 'success' ? '✓' : n.type === 'warning' ? '!' : 'i';
+            return `
+              <div class="notif-item ${n.read ? '' : 'unread'}">
+                <div class="notif-icon" style="background:${iconColor};color:var(--text)">${iconText}</div>
+                <div style="flex:1">
+                  <div style="font-weight:600;font-size:0.9rem">${n.title || 'Notification'}</div>
+                  <div class="text-sm text-soft">${n.message || ''}</div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // Recommended products (first 3)
+        const recommended = PRODUCTS.slice(0, 3);
+        document.getElementById('recommended').innerHTML = recommended.map(p => `
+          <div class="card product-card" style="padding:0;overflow:hidden">
+            <div class="product-img"><img src="${PEXELS(p.img, 300, 300)}" alt="${p.name}" /></div>
+            <div class="product-body">
+              <div class="flex-between mb-1">
+                <h4 style="font-size:0.95rem">${p.name}</h4>
+                <span class="badge badge-primary">${p.category}</span>
+              </div>
+              <div class="text-sm text-soft mb-1">${p.seller}</div>
+              <div class="flex-between items-center">
+                <span class="price">${fmtMoney(p.price)} <span class="unit">/ ${p.unit}</span></span>
+                <button class="btn btn-primary btn-sm" onclick="addToCart(${p.id})">Add</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function addToCart(id) {
+        Cart.add(id, 1);
+        toast('Added to cart');
+      }
+    </script>
+  </body>
+</html>

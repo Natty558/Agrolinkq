@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Orders — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/buyer.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      const content = `
+        <p class="text-soft mb-3">View and manage all your orders</p>
+        <div class="card"><div id="ordersList"></div></div>
+      `;
+      initBuyerPage('/pages/orders.html', 'My Orders', content);
+
+      renderOrders();
+
+      function renderOrders() {
+        const orders = Store.orders();
+
+        if (orders.length === 0) {
+          document.getElementById('ordersList').innerHTML = emptyState('No orders yet', 'You haven\'t placed any orders yet. Start shopping to see your orders here.', '/pages/marketplace.html', 'Browse Marketplace');
+          return;
+        }
+
+        const sorted = [...orders].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        document.getElementById('ordersList').innerHTML = `
+          <div class="table-wrap"><table>
+            <thead><tr><th>Order ID</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              ${sorted.map(o => `
+                <tr>
+                  <td><strong>#${o.id}</strong></td>
+                  <td>${o.date || '—'}</td>
+                  <td>${o.items ? o.items.length : 0} item(s)</td>
+                  <td style="font-weight:600">${fmtMoney(o.total || 0)}</td>
+                  <td>
+                    <span class="badge ${o.status === 'Delivered' ? 'badge-success' : o.status === 'Cancelled' ? 'badge-error' : 'badge-warning'}">${o.status || 'Pending'}</span>
+                  </td>
+                  <td>
+                    <a href="/pages/order-tracking.html?id=${o.id}" class="btn btn-ghost btn-sm">Track</a>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table></div>
+        `;
+      }
+    </script>
+  </body>
+</html>

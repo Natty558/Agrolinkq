@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marketplace — AgriMarket Ghana</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+  </head>
+  <body>
+    <div id="nav"></div>
+
+    <!-- Page Header -->
+    <section class="page-header">
+      <div class="container">
+        <h1>Marketplace</h1>
+        <p>Browse fresh agricultural products from Ghanaian farmers</p>
+      </div>
+    </section>
+
+    <!-- Marketplace -->
+    <section class="container" style="padding:2rem 1rem">
+      <!-- Search & Sort -->
+      <div class="flex-between mb-3" style="flex-wrap:wrap;gap:1rem">
+        <div class="search-bar" style="flex:1;min-width:250px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="Search products, sellers, categories..." oninput="renderProducts()" />
+        </div>
+        <div class="flex gap-1" style="align-items:center">
+          <label class="text-sm text-soft" style="white-space:nowrap">Sort by:</label>
+          <select id="sortSelect" onchange="renderProducts()" style="padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius);font-size:0.875rem;background:var(--white)">
+            <option value="featured">Featured</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="rating">Rating</option>
+            <option value="name">Name (A-Z)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Category Chips -->
+      <div class="chips mb-3" id="categoryChips"></div>
+
+      <!-- Products Grid -->
+      <div class="grid grid-4" id="productsGrid"></div>
+    </section>
+
+    <div id="footer"></div>
+
+    <script>
+      mountLayout('marketplace');
+
+      let activeCategory = 'All';
+
+      // Category chips
+      document.getElementById('categoryChips').innerHTML = ['All', ...CATEGORIES].map(cat => `
+        <div class="chip ${cat === 'All' ? 'active' : ''}" id="chip-${cat}" onclick="setCategory('${cat}')">${cat}</div>
+      `).join('');
+
+      function setCategory(cat) {
+        activeCategory = cat;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        document.getElementById('chip-' + cat).classList.add('active');
+        renderProducts();
+      }
+
+      function renderProducts() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const sort = document.getElementById('sortSelect').value;
+        let products = [...PRODUCTS];
+
+        // Filter by category
+        if (activeCategory !== 'All') {
+          products = products.filter(p => p.category === activeCategory);
+        }
+
+        // Filter by search
+        if (search) {
+          products = products.filter(p =>
+            p.name.toLowerCase().includes(search) ||
+            p.seller.toLowerCase().includes(search) ||
+            p.category.toLowerCase().includes(search)
+          );
+        }
+
+        // Sort
+        switch (sort) {
+          case 'price-low': products.sort((a, b) => a.price - b.price); break;
+          case 'price-high': products.sort((a, b) => b.price - a.price); break;
+          case 'rating': products.sort((a, b) => b.rating - a.rating); break;
+          case 'name': products.sort((a, b) => a.name.localeCompare(b.name)); break;
+        }
+
+        if (products.length === 0) {
+          document.getElementById('productsGrid').innerHTML = emptyState('No products found', 'Try adjusting your search or filters to find what you\'re looking for.', null, null);
+          return;
+        }
+
+        document.getElementById('productsGrid').innerHTML = products.map(p => `
+          <div class="card card-hover" style="padding:0;overflow:hidden">
+            <a href="/pages/product-details.html?id=${p.id}">
+              <img src="${PEXELS(p.img, 400, 300)}" alt="${p.name}" style="width:100%;height:200px;object-fit:cover" />
+            </a>
+            <div class="product-body">
+              <span class="badge badge-primary">${p.category}</span>
+              <h4 style="margin:0.5rem 0 0.25rem;font-size:1rem"><a href="/pages/product-details.html?id=${p.id}" style="color:var(--text)">${p.name}</a></h4>
+              <p class="text-sm text-soft">${p.seller} · ${stars(p.rating)}</p>
+              <div class="flex-between mt-1">
+                <span class="price">${fmtMoney(p.price)} <span class="unit">/ ${p.unit}</span></span>
+                <button class="btn btn-primary btn-sm" onclick="quickAdd(${p.id})">Add</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function quickAdd(id) {
+        Cart.add(id, 1);
+        toast('Added to cart');
+      }
+
+      renderProducts();
+    </script>
+  </body>
+</html>

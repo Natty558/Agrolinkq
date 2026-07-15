@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login — AgriMarket Ghana</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+  </head>
+  <body>
+    <div class="auth-page">
+      <div class="auth-card card">
+        <div style="text-align:center;margin-bottom:1.5rem">
+          <a href="/index.html" class="nav-logo" style="justify-content:center;margin-bottom:0.5rem">
+            <svg viewBox="0 0 32 32" width="32" height="32"><circle cx="16" cy="16" r="16" fill="#1a7a3e"/><path d="M16 7c-4 4-6 8-6 11a6 6 0 0012 0c0-3-2-7-6-11z" fill="#fff"/></svg>
+            AgriMarket
+          </a>
+          <h2>Welcome Back</h2>
+          <p class="subtitle">Log in to your AgriMarket account</p>
+        </div>
+
+        <form onsubmit="submitLogin(event)">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="lEmail" required placeholder="you@example.com" />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="lPassword" required placeholder="Enter your password" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg">Log In</button>
+        </form>
+
+        <!-- Demo Login -->
+        <div style="text-align:center;margin:1.5rem 0 1rem;position:relative">
+          <hr style="border:none;border-top:1px solid var(--border)" />
+          <span style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--white);padding:0 1rem;font-size:0.8rem;color:var(--text-soft)">Quick Demo Login</span>
+        </div>
+
+        <div class="grid grid-3" style="gap:0.5rem">
+          <button class="btn btn-outline btn-sm" onclick="demoLogin('Farmer')">🌱 Farmer</button>
+          <button class="btn btn-outline btn-sm" onclick="demoLogin('Buyer')">🛒 Buyer</button>
+          <button class="btn btn-outline btn-sm" onclick="demoLogin('Admin')">⚙️ Admin</button>
+        </div>
+
+        <p class="auth-footer">Don't have an account? <a href="/pages/register.html">Register here</a></p>
+      </div>
+    </div>
+
+    <script>
+      function submitLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('lEmail').value;
+        const password = document.getElementById('lPassword').value;
+        const users = Store.users();
+        const user = users.find(u => u.email === email && u.password === password);
+        if (!user) {
+          toast('Invalid email or password. Try a demo login below.');
+          return;
+        }
+        Auth.set({ id: user.id, name: user.name, email: user.email, role: user.role, region: user.region || '' });
+        toast('Welcome back, ' + user.name + '!');
+        redirectByRole(user.role);
+      }
+
+      function demoLogin(type) {
+        let user;
+        if (type === 'Farmer') {
+          user = { id: 1, name: 'Kofi Mensah', email: 'kofi@demo.gh', role: 'Farmer', region: 'Ashanti' };
+        } else if (type === 'Buyer') {
+          user = { id: 2, name: 'Ama Serwaa', email: 'ama@demo.gh', role: 'Wholesaler', region: 'Greater Accra' };
+        } else {
+          user = { id: 3, name: 'Admin User', email: 'admin@demo.gh', role: 'Admin', region: 'Greater Accra' };
+        }
+        Auth.set(user);
+        toast('Logged in as ' + type + ' demo user');
+        redirectByRole(user.role);
+      }
+
+      function redirectByRole(role) {
+        const dashboards = {
+          Farmer: '/pages/farmer-dashboard.html',
+          Admin: '/pages/admin-dashboard.html',
+        };
+        setTimeout(() => {
+          window.location.href = dashboards[role] || '/pages/buyer-dashboard.html';
+        }, 800);
+      }
+    </script>
+  </body>
+</html>

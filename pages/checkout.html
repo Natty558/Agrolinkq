@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout — AgriMarket Ghana</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+  </head>
+  <body>
+    <div id="nav"></div>
+
+    <!-- Page Header -->
+    <section class="page-header">
+      <div class="container">
+        <h1>Checkout</h1>
+        <p>Complete your order</p>
+      </div>
+    </section>
+
+    <!-- Checkout -->
+    <section class="container" style="padding:2rem 1rem">
+      <div class="grid grid-3" style="grid-template-columns:2fr 1fr;align-items:start">
+        <!-- Forms -->
+        <div>
+          <!-- Shipping Form -->
+          <div class="card mb-3">
+            <h3 style="margin-bottom:1rem">Shipping Information</h3>
+            <form id="shippingForm">
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="shipName" required placeholder="e.g. Ama Serwaa" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="tel" id="shipPhone" required placeholder="+233 24 000 0000" pattern="(\+233|0)[\s\d]+" />
+                </div>
+                <div class="form-group">
+                  <label>Email Address</label>
+                  <input type="email" id="shipEmail" required placeholder="you@example.com" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Street Address</label>
+                <input type="text" id="shipAddress" required placeholder="e.g. 123 Independence Avenue" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>City / Town</label>
+                  <input type="text" id="shipCity" required placeholder="e.g. Accra" />
+                </div>
+                <div class="form-group">
+                  <label>Region</label>
+                  <select id="shipRegion" required>
+                    <option value="">Select region</option>
+                    <option>Greater Accra</option><option>Ashanti</option><option>Western</option>
+                    <option>Western North</option><option>Eastern</option><option>Central</option>
+                    <option>Northern</option><option>Volta</option><option>Oti</option>
+                    <option>Brong-Ahafo</option><option>Bono East</option><option>Ahafo</option>
+                    <option>Upper East</option><option>Upper West</option>
+                    <option>Savannah</option><option>North East</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Delivery Notes (optional)</label>
+                <textarea id="shipNotes" rows="2" placeholder="Any special instructions for delivery..."></textarea>
+              </div>
+            </form>
+          </div>
+
+          <!-- Payment Form -->
+          <div class="card mb-3">
+            <h3 style="margin-bottom:1rem">Payment Method</h3>
+            <form id="paymentForm">
+              <div class="form-group">
+                <label>Payment Option</label>
+                <select id="payMethod" onchange="togglePayment()">
+                  <option value="momo">Mobile Money (MTN MoMo)</option>
+                  <option value="vodafone">Vodafone Cash</option>
+                  <option value="airtel">AirtelTigo Money</option>
+                  <option value="card">Card Payment</option>
+                  <option value="cod">Cash on Delivery</option>
+                </select>
+              </div>
+
+              <div id="momoFields">
+                <div class="form-group">
+                  <label>Mobile Money Number</label>
+                  <input type="tel" id="momoNumber" placeholder="+233 24 000 0000" pattern="(\+233|0)[\s\d]+" />
+                </div>
+              </div>
+
+              <div id="cardFields" style="display:none">
+                <div class="form-group">
+                  <label>Card Number</label>
+                  <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19" />
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Expiry Date</label>
+                    <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5" />
+                  </div>
+                  <div class="form-group">
+                    <label>CVV</label>
+                    <input type="text" id="cardCvv" placeholder="123" maxlength="4" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Cardholder Name</label>
+                  <input type="text" id="cardName" placeholder="Name on card" />
+                </div>
+              </div>
+
+              <div id="codFields" style="display:none">
+                <p class="text-soft text-sm" style="padding:0.75rem;background:var(--warning-50);border-radius:var(--radius)">Pay with cash when your order is delivered. Please have the exact amount ready.</p>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="card" id="orderSummary" style="position:sticky;top:1rem"></div>
+      </div>
+    </section>
+
+    <div id="footer"></div>
+
+    <script>
+      mountLayout('marketplace');
+
+      const cart = Cart.get();
+      const items = cart.map(ci => {
+        const product = PRODUCTS.find(p => p.id === ci.id);
+        return { ...ci, product };
+      }).filter(ci => ci.product);
+
+      if (items.length === 0) {
+        document.querySelector('section.container').innerHTML = emptyState('Your cart is empty', 'Add some products to your cart before checking out.', '/pages/marketplace.html', 'Browse Marketplace');
+      } else {
+        const subtotal = items.reduce((s, i) => s + (i.product.price * i.qty), 0);
+        const shipping = subtotal >= 200 ? 0 : 15;
+        const tax = subtotal * 0.05;
+        const total = subtotal + shipping + tax;
+
+        document.getElementById('orderSummary').innerHTML = `
+          <h3 style="margin-bottom:1rem">Order Summary</h3>
+          <div style="max-height:250px;overflow-y:auto;margin-bottom:1rem">
+            ${items.map(item => `
+              <div style="display:flex;gap:0.75rem;padding:0.5rem 0;border-bottom:1px solid var(--border)">
+                <img src="${PEXELS(item.product.img, 80, 80)}" alt="${item.product.name}" style="width:50px;height:50px;border-radius:var(--radius);object-fit:cover" />
+                <div style="flex:1">
+                  <p style="font-size:0.85rem;font-weight:600">${item.product.name}</p>
+                  <p class="text-sm text-soft">${item.qty} × ${fmtMoney(item.product.price)}</p>
+                </div>
+                <span style="font-weight:600;font-size:0.85rem">${fmtMoney(item.product.price * item.qty)}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="summary-row">
+            <span class="text-soft">Subtotal</span>
+            <span>${fmtMoney(subtotal)}</span>
+          </div>
+          <div class="summary-row">
+            <span class="text-soft">Shipping</span>
+            <span>${shipping === 0 ? '<span style="color:var(--success-600)">Free</span>' : fmtMoney(shipping)}</span>
+          </div>
+          <div class="summary-row">
+            <span class="text-soft">Tax (5%)</span>
+            <span>${fmtMoney(tax)}</span>
+          </div>
+          <div class="summary-total">
+            <span>Total</span>
+            <span style="color:var(--primary-600)">${fmtMoney(total)}</span>
+          </div>
+          <button class="btn btn-primary btn-block btn-lg mt-2" onclick="placeOrder()">Place Order</button>
+          <p class="text-sm text-soft text-center mt-1">By placing your order, you agree to our terms and conditions.</p>
+        `;
+      }
+
+      function togglePayment() {
+        const method = document.getElementById('payMethod').value;
+        document.getElementById('momoFields').style.display = (method === 'momo' || method === 'vodafone' || method === 'airtel') ? 'block' : 'none';
+        document.getElementById('cardFields').style.display = method === 'card' ? 'block' : 'none';
+        document.getElementById('codFields').style.display = method === 'cod' ? 'block' : 'none';
+      }
+
+      function placeOrder() {
+        // Validate shipping form
+        const shipForm = document.getElementById('shippingForm');
+        const requiredInputs = shipForm.querySelectorAll('[required]');
+        let valid = true;
+        requiredInputs.forEach(input => {
+          if (!input.value.trim()) {
+            valid = false;
+            input.style.borderColor = 'var(--error-500)';
+          } else {
+            input.style.borderColor = '';
+          }
+        });
+        if (!valid) {
+          toast('Please fill in all required shipping fields');
+          return;
+        }
+
+        const user = Auth.get();
+        const order = {
+          id: Date.now(),
+          orderNumber: 'AM' + Date.now().toString().slice(-8),
+          userId: user.id || null,
+          customerName: document.getElementById('shipName').value,
+          phone: document.getElementById('shipPhone').value,
+          email: document.getElementById('shipEmail').value,
+          address: document.getElementById('shipAddress').value,
+          city: document.getElementById('shipCity').value,
+          region: document.getElementById('shipRegion').value,
+          notes: document.getElementById('shipNotes').value,
+          paymentMethod: document.getElementById('payMethod').value,
+          items: items.map(i => ({ id: i.id, name: i.product.name, qty: i.qty, price: i.product.price, unit: i.product.unit, img: i.product.img })),
+          subtotal: subtotal,
+          shipping: shipping,
+          tax: tax,
+          total: total,
+          status: 'Processing',
+          createdAt: new Date().toISOString(),
+        };
+
+        const orders = Store.orders();
+        orders.push(order);
+        Store.saveOrders(orders);
+
+        // Add notification
+        const notifications = Store.notifications();
+        notifications.push({
+          id: Date.now(),
+          userId: user.id || null,
+          title: 'Order Placed Successfully',
+          message: 'Your order ' + order.orderNumber + ' has been placed and is now being processed.',
+          type: 'success',
+          read: false,
+          createdAt: new Date().toISOString(),
+        });
+        Store.saveNotifications(notifications);
+
+        Cart.clear();
+        toast('Order placed successfully! Redirecting to order tracking...');
+        setTimeout(() => {
+          window.location.href = '/pages/order-tracking.html?id=' + order.id;
+        }, 1500);
+      }
+    </script>
+  </body>
+</html>

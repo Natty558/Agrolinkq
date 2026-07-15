@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile Settings — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/buyer.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      let currentTab = 'personal';
+
+      const content = `
+        <div class="grid grid-2" style="gap:1.5rem">
+          <div class="card" style="text-align:center">
+            <div class="avatar avatar-lg" style="margin:0 auto 1rem;background:var(--primary-500);color:#fff" id="profileAvatar">U</div>
+            <h3 id="profileName" style="margin-bottom:0.25rem">User</h3>
+            <p class="text-sm text-soft" id="profileEmail" style="margin-bottom:0.5rem">user@example.com</p>
+            <span class="badge badge-primary" id="profileRole">Buyer</span>
+          </div>
+
+          <div class="card">
+            <div class="tabs" style="margin-bottom:1.5rem">
+              <div class="tab active" id="tabPersonal" onclick="switchTab('personal')">Personal Info</div>
+              <div class="tab" id="tabSecurity" onclick="switchTab('security')">Security</div>
+              <div class="tab" id="tabPrefs" onclick="switchTab('prefs')">Preferences</div>
+            </div>
+
+            <!-- Personal Info -->
+            <div id="personalPanel">
+              <form onsubmit="savePersonal(event)">
+                <div class="form-group">
+                  <label>Full Name</label>
+                  <input type="text" id="persName" required placeholder="Your full name" />
+                </div>
+                <div class="form-group">
+                  <label>Email Address</label>
+                  <input type="email" id="persEmail" required placeholder="you@example.com" />
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="persPhone" placeholder="+233 24 000 0000" />
+                  </div>
+                  <div class="form-group">
+                    <label>Region</label>
+                    <select id="persRegion">
+                      <option>Greater Accra</option><option>Ashanti</option><option>Western</option>
+                      <option>Eastern</option><option>Central</option><option>Northern</option>
+                      <option>Volta</option><option>Brong-Ahafo</option><option>Upper East</option><option>Upper West</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Address</label>
+                  <input type="text" id="persAddress" placeholder="Your delivery address" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+              </form>
+            </div>
+
+            <!-- Security -->
+            <div id="securityPanel" style="display:none">
+              <form onsubmit="changePassword(event)">
+                <div class="form-group">
+                  <label>Current Password</label>
+                  <input type="password" id="curPass" required placeholder="Enter current password" />
+                </div>
+                <div class="form-group">
+                  <label>New Password</label>
+                  <input type="password" id="newPass" required placeholder="Enter new password" />
+                </div>
+                <div class="form-group">
+                  <label>Confirm New Password</label>
+                  <input type="password" id="confirmPass" required placeholder="Re-enter new password" />
+                </div>
+                <button type="submit" class="btn btn-primary">Update Password</button>
+              </form>
+              <div style="border-top:1px solid var(--border);margin-top:1.5rem;padding-top:1.5rem">
+                <h4 style="margin-bottom:0.5rem">Account</h4>
+                <button class="btn btn-outline" style="color:var(--error-500);border-color:var(--error-100)" onclick="logout()">Logout</button>
+              </div>
+            </div>
+
+            <!-- Preferences -->
+            <div id="prefsPanel" style="display:none">
+              <form onsubmit="savePrefs(event)">
+                <div class="form-group">
+                  <label>Email Notifications</label>
+                  <select id="prefEmailNotif">
+                    <option value="on">Enabled</option>
+                    <option value="off">Disabled</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>SMS Notifications</label>
+                  <select id="prefSmsNotif">
+                    <option value="on">Enabled</option>
+                    <option value="off">Disabled</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Order Updates</label>
+                  <select id="prefOrderUpdates">
+                    <option value="on">Notify me on every status change</option>
+                    <option value="off">Only notify on delivery</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Preferred Language</label>
+                  <select id="prefLang">
+                    <option>English</option><option>Twi</option><option>Ga</option><option>Dagbani</option><option>Ewe</option><option>Hausa</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Currency Display</label>
+                  <select id="prefCurrency">
+                    <option>Ghana Cedi (₵)</option><option>US Dollar ($)</option><option>Euro (€)</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Preferences</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      `;
+      initBuyerPage('/pages/profile.html', 'Profile Settings', content);
+
+      loadProfile();
+
+      function loadProfile() {
+        const user = Auth.get();
+        document.getElementById('profileAvatar').textContent = (user.name || 'U').charAt(0).toUpperCase();
+        document.getElementById('profileName').textContent = user.name || 'User';
+        document.getElementById('profileEmail').textContent = user.email || 'user@example.com';
+        document.getElementById('profileRole').textContent = user.role || 'Buyer';
+
+        document.getElementById('persName').value = user.name || '';
+        document.getElementById('persEmail').value = user.email || '';
+        document.getElementById('persPhone').value = user.phone || '';
+        document.getElementById('persRegion').value = user.region || 'Greater Accra';
+        document.getElementById('persAddress').value = user.address || '';
+
+        // Load prefs
+        const prefs = user.prefs || {};
+        document.getElementById('prefEmailNotif').value = prefs.emailNotif || 'on';
+        document.getElementById('prefSmsNotif').value = prefs.smsNotif || 'on';
+        document.getElementById('prefOrderUpdates').value = prefs.orderUpdates || 'on';
+        document.getElementById('prefLang').value = prefs.lang || 'English';
+        document.getElementById('prefCurrency').value = prefs.currency || 'Ghana Cedi (₵)';
+      }
+
+      function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        if (tab === 'personal') {
+          document.getElementById('tabPersonal').classList.add('active');
+          document.getElementById('personalPanel').style.display = 'block';
+          document.getElementById('securityPanel').style.display = 'none';
+          document.getElementById('prefsPanel').style.display = 'none';
+        } else if (tab === 'security') {
+          document.getElementById('tabSecurity').classList.add('active');
+          document.getElementById('personalPanel').style.display = 'none';
+          document.getElementById('securityPanel').style.display = 'block';
+          document.getElementById('prefsPanel').style.display = 'none';
+        } else {
+          document.getElementById('tabPrefs').classList.add('active');
+          document.getElementById('personalPanel').style.display = 'none';
+          document.getElementById('securityPanel').style.display = 'none';
+          document.getElementById('prefsPanel').style.display = 'block';
+        }
+      }
+
+      function savePersonal(e) {
+        e.preventDefault();
+        const user = Auth.get();
+        user.name = document.getElementById('persName').value;
+        user.email = document.getElementById('persEmail').value;
+        user.phone = document.getElementById('persPhone').value;
+        user.region = document.getElementById('persRegion').value;
+        user.address = document.getElementById('persAddress').value;
+        Auth.set(user);
+        document.getElementById('profileAvatar').textContent = user.name.charAt(0).toUpperCase();
+        document.getElementById('profileName').textContent = user.name;
+        document.getElementById('profileEmail').textContent = user.email;
+        toast('Profile updated');
+      }
+
+      function changePassword(e) {
+        e.preventDefault();
+        const cur = document.getElementById('curPass').value;
+        const newP = document.getElementById('newPass').value;
+        const confirmP = document.getElementById('confirmPass').value;
+
+        if (newP !== confirmP) {
+          toast('Passwords do not match');
+          return;
+        }
+        if (newP.length < 6) {
+          toast('Password must be at least 6 characters');
+          return;
+        }
+
+        const user = Auth.get();
+        user.password = newP;
+        Auth.set(user);
+        document.getElementById('curPass').value = '';
+        document.getElementById('newPass').value = '';
+        document.getElementById('confirmPass').value = '';
+        toast('Password updated');
+      }
+
+      function savePrefs(e) {
+        e.preventDefault();
+        const user = Auth.get();
+        user.prefs = {
+          emailNotif: document.getElementById('prefEmailNotif').value,
+          smsNotif: document.getElementById('prefSmsNotif').value,
+          orderUpdates: document.getElementById('prefOrderUpdates').value,
+          lang: document.getElementById('prefLang').value,
+          currency: document.getElementById('prefCurrency').value,
+        };
+        Auth.set(user);
+        toast('Preferences saved');
+      }
+
+      function logout() {
+        Auth.clear();
+        Cart.clear();
+        toast('Logged out');
+        setTimeout(() => window.location.href = '/index.html', 1000);
+      }
+    </script>
+  </body>
+</html>

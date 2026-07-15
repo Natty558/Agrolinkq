@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Orders — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/admin.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      let statusFilter = 'all';
+      const ORDER_STATUSES = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+
+      const content = `
+        <div class="grid grid-4 mb-4" id="orderStats"></div>
+        <div class="flex gap-1 mb-3" id="statusChips" style="flex-wrap:wrap"></div>
+        <div class="card">
+          <div id="ordersTable"></div>
+        </div>
+      `;
+      initAdminPage('/pages/manage-orders.html', 'Manage Orders', content);
+
+      renderOrders();
+
+      function renderOrders() {
+        const orders = Store.orders();
+
+        // Stats cards
+        const counts = {
+          pending: orders.filter(o => normStatus(o.status) === 'pending').length,
+          processing: orders.filter(o => normStatus(o.status) === 'processing').length,
+          shipped: orders.filter(o => normStatus(o.status) === 'shipped').length,
+          delivered: orders.filter(o => normStatus(o.status) === 'delivered').length,
+        };
+
+        document.getElementById('orderStats').innerHTML = `
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--warning-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warning-600)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div><div class="stat-value">${counts.pending}</div><div class="stat-label">Pending</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--primary-100)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-600)" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg></div><div><div class="stat-value">${counts.processing}</div><div class="stat-label">Processing</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--accent-100)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-600)" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/></svg></div><div><div class="stat-value">${counts.shipped}</div><div class="stat-label">Shipped</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--success-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div><div class="stat-value">${counts.delivered}</div><div class="stat-label">Delivered</div></div></div>
+        `;
+
+        // Status filter chips
+        const chipItems = [{ key: 'all', label: 'All' }, ...ORDER_STATUSES.map(s => ({ key: s.toLowerCase(), label: s }))];
+        document.getElementById('statusChips').innerHTML = chipItems.map(c => `
+          <button class="btn btn-sm ${statusFilter === c.key ? 'btn-primary' : 'btn-outline'}" onclick="setStatusFilter('${c.key}')">${c.label}${c.key !== 'all' ? ` (${orders.filter(o => normStatus(o.status) === c.key).length})` : ` (${orders.length})`}</button>
+        `).join('');
+
+        // Filtered orders
+        let filtered = orders;
+        if (statusFilter !== 'all') {
+          filtered = orders.filter(o => normStatus(o.status) === statusFilter);
+        }
+
+        if (filtered.length === 0) {
+          document.getElementById('ordersTable').innerHTML = emptyState('No orders found', 'Orders matching your filter will appear here. Once buyers place orders, you can manage them from this page.', null, null);
+          return;
+        }
+
+        document.getElementById('ordersTable').innerHTML = `
+          <div class="table-wrap"><table>
+            <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th>Update Status</th></tr></thead>
+            <tbody>
+              ${filtered.map(o => `
+                <tr>
+                  <td><strong>#${(o.id || '').toString().slice(-6)}</strong></td>
+                  <td>${o.customer || o.buyer || '—'}</td>
+                  <td>${(o.items || []).length}</td>
+                  <td>${fmtMoney(o.total || 0)}</td>
+                  <td class="text-sm text-soft">${o.date ? new Date(o.date).toLocaleDateString('en-GH') : '—'}</td>
+                  <td><span class="badge ${statusBadge(o.status)}">${o.status || 'Pending'}</span></td>
+                  <td>
+                    <select style="padding:0.35rem 0.5rem;border:1px solid var(--border);border-radius:var(--radius);font-size:0.8rem" onchange="updateOrderStatus('${o.id}', this.value)">
+                      ${ORDER_STATUSES.map(s => `<option value="${s}" ${normStatus(o.status) === s.toLowerCase() ? 'selected' : ''}>${s}</option>`).join('')}
+                    </select>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table></div>
+        `;
+      }
+
+      function setStatusFilter(key) {
+        statusFilter = key;
+        renderOrders();
+      }
+
+      function updateOrderStatus(orderId, newStatus) {
+        const orders = Store.orders();
+        const order = orders.find(o => o.id == orderId);
+        if (!order) return;
+        order.status = newStatus;
+        Store.saveOrders(orders);
+        toast('Order status updated to ' + newStatus);
+        renderOrders();
+      }
+
+      function normStatus(status) {
+        return (status || 'pending').toLowerCase();
+      }
+
+      function statusBadge(status) {
+        const s = normStatus(status);
+        if (s === 'delivered') return 'badge-success';
+        if (s === 'shipped' || s === 'processing') return 'badge-primary';
+        if (s === 'cancelled') return 'badge-error';
+        return 'badge-warning';
+      }
+    </script>
+  </body>
+</html>

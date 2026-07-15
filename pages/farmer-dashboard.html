@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Farmer Dashboard — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/farmer.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      const content = `
+        <div class="dash-banner" style="background:linear-gradient(135deg,rgba(10,55,25,0.85),rgba(20,90,45,0.7)),url('${PEXELS(1112080, 1200, 300)}');background-size:cover;background-position:center;color:#fff;margin-bottom:1.5rem">
+          <div>
+            <h2 style="color:#fff;font-size:1.5rem">Welcome back, <span id="welcomeName">Farmer</span>!</h2>
+            <p style="color:rgba(255,255,255,0.85);font-size:0.9rem;margin-top:0.25rem">Here's what's happening on your farm today.</p>
+          </div>
+          <a href="/pages/crop-management.html" class="btn btn-accent">Manage Farm</a>
+        </div>
+
+        <div class="grid grid-4 mb-4" id="dashStats"></div>
+
+        <div class="grid grid-2 mb-4">
+          <div class="card">
+            <h3 style="margin-bottom:1rem">Revenue Overview</h3>
+            <div id="revenueChart"></div>
+          </div>
+          <div class="card">
+            <h3 style="margin-bottom:1rem">Quick Actions</h3>
+            <div class="grid grid-2" style="gap:0.75rem">
+              <a href="/pages/crop-management.html" class="card" style="padding:1rem;text-align:center;text-decoration:none;color:var(--text);transition:all 0.2s" onmouseover="this.style.background='var(--primary-50)'" onmouseout="this.style.background='var(--white)'">
+                <div style="font-size:1.5rem;margin-bottom:0.25rem">🌱</div>
+                <div style="font-weight:600;font-size:0.85rem">Crop Management</div>
+              </a>
+              <a href="/pages/inventory.html" class="card" style="padding:1rem;text-align:center;text-decoration:none;color:var(--text);transition:all 0.2s" onmouseover="this.style.background='var(--primary-50)'" onmouseout="this.style.background='var(--white)'">
+                <div style="font-size:1.5rem;margin-bottom:0.25rem">📦</div>
+                <div style="font-weight:600;font-size:0.85rem">Inventory</div>
+              </a>
+              <a href="/pages/expenses-income.html" class="card" style="padding:1rem;text-align:center;text-decoration:none;color:var(--text);transition:all 0.2s" onmouseover="this.style.background='var(--primary-50)'" onmouseout="this.style.background='var(--white)'">
+                <div style="font-size:1.5rem;margin-bottom:0.25rem">💰</div>
+                <div style="font-weight:600;font-size:0.85rem">Expenses & Income</div>
+              </a>
+              <a href="/pages/marketplace.html" class="card" style="padding:1rem;text-align:center;text-decoration:none;color:var(--text);transition:all 0.2s" onmouseover="this.style.background='var(--primary-50)'" onmouseout="this.style.background='var(--white)'">
+                <div style="font-size:1.5rem;margin-bottom:0.25rem">🛒</div>
+                <div style="font-weight:600;font-size:0.85rem">Marketplace</div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="flex-between mb-2">
+            <h3>Recent Notifications</h3>
+            <a href="/pages/profile.html" class="text-sm" style="font-weight:600">View all</a>
+          </div>
+          <div id="dashNotifs"></div>
+        </div>
+      `;
+      initFarmerPage('/pages/farmer-dashboard.html', 'Dashboard', content);
+
+      renderDashboard();
+
+      function renderDashboard() {
+        const user = Auth.get();
+        const inventory = Store.inventory();
+        const crops = Store.crops();
+        const income = Store.income();
+        const expenses = Store.expenses();
+        const notifs = Store.notifications();
+
+        document.getElementById('welcomeName').textContent = user.name || 'Farmer';
+
+        const totalIncome = income.reduce((s, i) => s + (i.amount || 0), 0);
+        const totalExpenses = expenses.reduce((s, e) => s + (e.amount || 0), 0);
+
+        document.getElementById('dashStats').innerHTML = `
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--primary-100)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-600)" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></svg></div><div><div class="stat-value">${inventory.length}</div><div class="stat-label">Inventory Items</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--accent-100)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-600)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><div><div class="stat-value">${crops.length}</div><div class="stat-label">Active Crops</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--success-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="stat-value">${fmtMoney(totalIncome)}</div><div class="stat-label">Total Income</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--error-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--error-500)" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="stat-value">${fmtMoney(totalExpenses)}</div><div class="stat-label">Total Expenses</div></div></div>
+        `;
+
+        renderRevenueChart(income);
+        renderNotifs(notifs);
+      }
+
+      function renderRevenueChart(income) {
+        if (income.length === 0) {
+          document.getElementById('revenueChart').innerHTML = emptyState('No income data yet', 'Add income records to see your revenue chart.', '/pages/expenses-income.html', 'Add Income');
+          return;
+        }
+
+        // Group income by month
+        const months = {};
+        income.forEach(item => {
+          if (!item.date) return;
+          const d = new Date(item.date);
+          if (isNaN(d)) return;
+          const key = d.toLocaleDateString('en-GH', { month: 'short' });
+          months[key] = (months[key] || 0) + (item.amount || 0);
+        });
+
+        const entries = Object.entries(months);
+        if (entries.length === 0) {
+          document.getElementById('revenueChart').innerHTML = emptyState('No income data yet', 'Add income records to see your revenue chart.', '/pages/expenses-income.html', 'Add Income');
+          return;
+        }
+
+        const maxVal = Math.max(...entries.map(e => e[1]), 1);
+
+        document.getElementById('revenueChart').innerHTML = `
+          <div class="bar-chart">
+            ${entries.map(([month, val]) => {
+              const height = Math.max((val / maxVal) * 100, 2);
+              return `
+                <div class="bar-col">
+                  <div style="font-size:0.7rem;color:var(--text-soft);margin-bottom:0.25rem">${fmtMoney(val)}</div>
+                  <div class="bar" style="height:${height}%"></div>
+                  <div class="bar-label">${month}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
+      function renderNotifs(notifs) {
+        if (notifs.length === 0) {
+          document.getElementById('dashNotifs').innerHTML = emptyState('No notifications', 'You have no notifications yet.', null, null);
+          return;
+        }
+
+        const recent = notifs.slice(-5).reverse();
+        document.getElementById('dashNotifs').innerHTML = recent.map(n => {
+          const iconColor = n.type === 'success' ? 'var(--success-100)' : n.type === 'warning' ? 'var(--warning-100)' : 'var(--primary-100)';
+          const iconText = n.type === 'success' ? '✓' : n.type === 'warning' ? '!' : 'i';
+          return `
+            <div class="notif-item ${n.read ? '' : 'unread'}">
+              <div class="notif-icon" style="background:${iconColor};color:var(--text)">${iconText}</div>
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:0.9rem">${n.title || 'Notification'}</div>
+                <div class="text-sm text-soft">${n.message || ''}</div>
+                ${n.date ? `<div class="text-sm text-muted mt-1">${n.date}</div>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    </script>
+  </body>
+</html>

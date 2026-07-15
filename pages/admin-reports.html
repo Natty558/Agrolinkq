@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/admin.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      const content = `
+        <div class="grid grid-4 mb-4" id="reportStats"></div>
+        <div class="grid grid-2 mb-4">
+          <div class="card">
+            <h3 class="mb-2">Revenue Trend</h3>
+            <div id="revenueChart"></div>
+          </div>
+          <div class="card">
+            <h3 class="mb-2">User Growth</h3>
+            <div id="userGrowthChart"></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="mb-2">Top Products</h3>
+          <div id="topProducts"></div>
+        </div>
+      `;
+      initAdminPage('/pages/admin-reports.html', 'Reports', content);
+
+      renderReports();
+
+      function renderReports() {
+        const users = Store.users();
+        const orders = Store.orders();
+        const income = Store.income();
+        const totalRevenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+        const totalIncome = income.reduce((s, i) => s + (i.amount || 0), 0);
+
+        // Summary stats
+        document.getElementById('reportStats').innerHTML = `
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--primary-100)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-600)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="stat-value">${fmtMoney(totalRevenue)}</div><div class="stat-label">Order Revenue</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--success-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="2"><path d="M23 6l-4 4-4-4M1 6l4 4 4-4M23 18l-4-4-4 4M1 18l4-4 4 4"/></svg></div><div><div class="stat-value">${fmtMoney(totalIncome)}</div><div class="stat-label">Logged Income</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--accent-100)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-600)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div><div class="stat-value">${users.length}</div><div class="stat-label">Total Users</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--warning-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warning-600)" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/></svg></div><div><div class="stat-value">${orders.length}</div><div class="stat-label">Total Orders</div></div></div>
+        `;
+
+        renderRevenueChart(income);
+        renderUserGrowth(users);
+        renderTopProducts(orders);
+      }
+
+      function renderRevenueChart(income) {
+        if (!income || income.length === 0) {
+          document.getElementById('revenueChart').innerHTML = emptyState('No revenue data', 'Income records will populate this chart once available.', null, null);
+          return;
+        }
+        const byMonth = {};
+        income.forEach(i => {
+          const d = new Date(i.date || Date.now());
+          const key = d.toLocaleDateString('en-GH', { month: 'short', year: '2-digit' });
+          byMonth[key] = (byMonth[key] || 0) + (i.amount || 0);
+        });
+        const labels = Object.keys(byMonth);
+        const values = Object.values(byMonth);
+        const maxVal = Math.max(...values, 1);
+        const chartHeight = 220;
+
+        document.getElementById('revenueChart').innerHTML = `
+          <div style="display:flex;align-items:flex-end;gap:0.5rem;height:${chartHeight}px;padding:0.5rem 0">
+            ${labels.map((label, idx) => {
+              const h = Math.round((values[idx] / maxVal) * (chartHeight - 50));
+              return `
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+                  <div style="font-size:0.7rem;color:var(--text-soft);margin-bottom:0.25rem">${fmtMoney(values[idx])}</div>
+                  <div style="width:100%;max-width:48px;height:${h}px;background:var(--primary-500);border-radius:6px 6px 0 0;transition:height 0.3s;min-height:4px"></div>
+                  <div style="font-size:0.7rem;color:var(--text-soft);margin-top:0.5rem">${label}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
+      function renderUserGrowth(users) {
+        if (!users || users.length === 0) {
+          document.getElementById('userGrowthChart').innerHTML = emptyState('No user data', 'User registrations will be tracked here over time.', '/pages/manage-users.html', 'Manage Users');
+          return;
+        }
+        // Group by join month
+        const byMonth = {};
+        users.forEach(u => {
+          const d = new Date(u.joined || u.created || Date.now());
+          const key = d.toLocaleDateString('en-GH', { month: 'short', year: '2-digit' });
+          if (!byMonth[key]) byMonth[key] = 0;
+          byMonth[key]++;
+        });
+        const labels = Object.keys(byMonth);
+        const monthlyCounts = Object.values(byMonth);
+        // Cumulative
+        let cum = 0;
+        const cumulative = monthlyCounts.map(c => cum += c);
+        const maxVal = Math.max(...cumulative, 1);
+        const chartHeight = 220;
+
+        // Line chart using SVG
+        const w = 100;
+        const points = cumulative.map((val, idx) => {
+          const x = (idx / Math.max(cumulative.length - 1, 1)) * w;
+          const y = chartHeight - 30 - (val / maxVal) * (chartHeight - 60);
+          return `${x},${y}`;
+        }).join(' ');
+
+        document.getElementById('userGrowthChart').innerHTML = `
+          <div style="position:relative">
+            <svg viewBox="0 0 ${w} ${chartHeight}" style="width:100%;height:${chartHeight}px" preserveAspectRatio="none">
+              <polyline points="${points}" fill="none" stroke="var(--primary-500)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+              <polyline points="0,${chartHeight - 30} ${points} ${w},${chartHeight - 30}" fill="rgba(26,122,62,0.1)" stroke="none" />
+            </svg>
+            <div style="display:flex;justify-content:space-between;margin-top:0.5rem">
+              ${labels.map(l => `<span style="font-size:0.7rem;color:var(--text-soft)">${l}</span>`).join('')}
+            </div>
+            <div style="text-align:center;margin-top:0.5rem">
+              <span class="text-sm text-soft">Total: </span>
+              <strong>${cumulative[cumulative.length - 1] || 0} users</strong>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderTopProducts(orders) {
+        if (!orders || orders.length === 0) {
+          document.getElementById('topProducts').innerHTML = emptyState('No order data', 'Top products will be ranked here once orders are placed.', '/pages/manage-orders.html', 'Manage Orders');
+          return;
+        }
+        // Aggregate product sales from order items
+        const productSales = {};
+        orders.forEach(o => {
+          (o.items || []).forEach(item => {
+            const pid = item.id || item.productId;
+            const name = item.name || (PRODUCTS.find(p => p.id === pid) || {}).name || 'Unknown';
+            const key = pid || name;
+            if (!productSales[key]) {
+              productSales[key] = { name, qty: 0, revenue: 0 };
+            }
+            productSales[key].qty += item.qty || 1;
+            productSales[key].revenue += (item.price || 0) * (item.qty || 1);
+          });
+        });
+
+        const ranked = Object.values(productSales).sort((a, b) => b.revenue - a.revenue).slice(0, 10);
+
+        if (ranked.length === 0) {
+          document.getElementById('topProducts').innerHTML = emptyState('No product sales yet', 'Top selling products will appear here once orders contain items.', null, null);
+          return;
+        }
+
+        const maxRev = Math.max(...ranked.map(r => r.revenue), 1);
+
+        document.getElementById('topProducts').innerHTML = `
+          <div class="table-wrap"><table>
+            <thead><tr><th>Rank</th><th>Product</th><th>Qty Sold</th><th>Revenue</th><th>Share</th></tr></thead>
+            <tbody>
+              ${ranked.map((r, idx) => `
+                <tr>
+                  <td><strong>#${idx + 1}</strong></td>
+                  <td><strong>${r.name}</strong></td>
+                  <td>${r.qty}</td>
+                  <td>${fmtMoney(r.revenue)}</td>
+                  <td style="min-width:140px">
+                    <div style="background:var(--neutral-100);border-radius:4px;height:8px;overflow:hidden">
+                      <div style="width:${Math.round((r.revenue / maxRev) * 100)}%;height:100%;background:var(--primary-500);border-radius:4px"></div>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table></div>
+        `;
+      }
+    </script>
+  </body>
+</html>

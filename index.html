@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgriMarket Ghana — Fresh from Farm to Market</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+  </head>
+  <body>
+    <div id="nav"></div>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-bg">
+        <img src="https://images.pexels.com/photos/1112080/pexels-photo-1112080.jpeg?auto=compress&cs=tinysrgb&w=1600&h=800&fit=crop" alt="Ghanaian farm landscape" />
+      </div>
+      <div class="hero-overlay"></div>
+      <div class="container hero-content">
+        <h1>AgriMarket Ghana</h1>
+        <p>Ghana's #1 agricultural marketplace — connecting farmers, wholesalers, retailers, factories, and consumers. Buy fresh, sell direct, and grow your agribusiness.</p>
+        <div class="flex gap-1" style="flex-wrap:wrap">
+          <a href="/pages/marketplace.html" class="btn btn-accent btn-lg">Browse Marketplace</a>
+          <a href="/pages/register.html" class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,0.5)">Join as Farmer</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="container" style="padding:3rem 1rem">
+      <div class="section-header">
+        <h2>Featured Products</h2>
+        <p>Fresh produce from trusted Ghanaian farmers</p>
+      </div>
+      <div class="grid grid-4" id="featuredProducts"></div>
+      <div style="text-align:center;margin-top:2rem">
+        <a href="/pages/marketplace.html" class="btn btn-outline">View All Products</a>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section style="background:var(--neutral-50);padding:3rem 0">
+      <div class="container">
+        <div class="section-header">
+          <h2>How It Works</h2>
+          <p>Get started in three simple steps</p>
+        </div>
+        <div class="grid grid-3">
+          <div class="card text-center card-hover">
+            <div style="width:64px;height:64px;border-radius:50%;background:var(--primary-100);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-600)" stroke-width="2" width="28" height="28"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+            </div>
+            <h3>1. Register Your Account</h3>
+            <p class="text-soft mt-1">Sign up as a farmer, buyer, or any role that fits you. It's free and takes less than a minute.</p>
+          </div>
+          <div class="card text-center card-hover">
+            <div style="width:64px;height:64px;border-radius:50%;background:var(--accent-100);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-600)" stroke-width="2" width="28" height="28"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></svg>
+            </div>
+            <h3>2. List or Browse Products</h3>
+            <p class="text-soft mt-1">Farmers list their produce; buyers browse the marketplace and find quality agricultural products.</p>
+          </div>
+          <div class="card text-center card-hover">
+            <div style="width:64px;height:64px;border-radius:50%;background:var(--success-100);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="2" width="28" height="28"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <h3>3. Buy & Track Orders</h3>
+            <p class="text-soft mt-1">Place orders, make payments, and track deliveries from farm to your doorstep anywhere in Ghana.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Roles -->
+    <section class="container" style="padding:3rem 1rem">
+      <div class="section-header">
+        <h2>Who Uses AgriMarket?</h2>
+        <p>Our platform serves everyone in Ghana's agricultural value chain</p>
+      </div>
+      <div class="grid grid-3" id="rolesGrid"></div>
+    </section>
+
+    <!-- CTA -->
+    <section style="background:linear-gradient(135deg,var(--primary-700),var(--primary-500));color:#fff;padding:3rem 0">
+      <div class="container text-center">
+        <h2 style="color:#fff;font-size:2rem;margin-bottom:0.5rem">Ready to Join Ghana's Agricultural Revolution?</h2>
+        <p style="color:rgba(255,255,255,0.85);margin-bottom:1.5rem">Whether you grow, sell, or buy — there's a place for you on AgriMarket.</p>
+        <div class="flex gap-1" style="justify-content:center;flex-wrap:wrap">
+          <a href="/pages/register.html" class="btn btn-accent btn-lg">Get Started Today</a>
+          <a href="/pages/contact.html" class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,0.5)">Contact Us</a>
+        </div>
+      </div>
+    </section>
+
+    <div id="footer"></div>
+
+    <script>
+      mountLayout('home');
+
+      // Featured products (first 4)
+      document.getElementById('featuredProducts').innerHTML = PRODUCTS.slice(0, 4).map(p => `
+        <div class="card card-hover" style="padding:0;overflow:hidden">
+          <a href="/pages/product-details.html?id=${p.id}">
+            <img src="${PEXELS(p.img, 400, 300)}" alt="${p.name}" style="width:100%;height:200px;object-fit:cover" />
+          </a>
+          <div class="product-body">
+            <span class="badge badge-primary">${p.category}</span>
+            <h4 style="margin:0.5rem 0 0.25rem;font-size:1rem"><a href="/pages/product-details.html?id=${p.id}" style="color:var(--text)">${p.name}</a></h4>
+            <p class="text-sm text-soft">${p.seller}</p>
+            <div class="flex-between mt-1">
+              <span class="price">${fmtMoney(p.price)} <span class="unit">/ ${p.unit}</span></span>
+              <span class="text-sm" style="color:var(--accent-500)">${stars(p.rating)}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Roles
+      const roles = [
+        { icon: '🌱', title: 'Farmer', desc: 'List your crops, manage inventory, track expenses, and sell directly to buyers across Ghana.' },
+        { icon: '📦', title: 'Wholesaler', desc: 'Buy in bulk from multiple farmers and distribute to retailers and markets nationwide.' },
+        { icon: '🏪', title: 'Retailer', desc: 'Source quality produce at fair prices and stock your shop with fresh agricultural goods.' },
+        { icon: '🏭', title: 'Factory', desc: 'Procure raw agricultural materials directly from farms for processing and manufacturing.' },
+        { icon: '🛒', title: 'Consumer', desc: 'Buy fresh, quality produce directly from farmers and enjoy farm-to-table goodness.' },
+      ];
+      document.getElementById('rolesGrid').innerHTML = roles.map(r => `
+        <div class="card card-hover text-center">
+          <div style="font-size:3rem;margin-bottom:0.5rem">${r.icon}</div>
+          <h3>${r.title}</h3>
+          <p class="text-soft mt-1">${r.desc}</p>
+          <a href="/pages/register.html" class="btn btn-outline btn-sm mt-2">Register as ${r.title}</a>
+        </div>
+      `).join('');
+    </script>
+  </body>
+</html>

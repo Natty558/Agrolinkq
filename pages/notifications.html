@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notifications — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/buyer.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      const content = `
+        <div class="flex-between mb-3">
+          <p class="text-soft">Stay updated with your latest notifications</p>
+          <button class="btn btn-outline btn-sm" onclick="markAllRead()" id="markAllBtn">Mark All Read</button>
+        </div>
+        <div class="card"><div id="notifList"></div></div>
+      `;
+      initBuyerPage('/pages/notifications.html', 'Notifications', content);
+
+      renderNotifications();
+
+      function renderNotifications() {
+        const notifs = Store.notifications();
+
+        if (notifs.length === 0) {
+          document.getElementById('notifList').innerHTML = emptyState('No notifications', 'You have no notifications yet. You\'ll see updates about your orders and account here.', null, null);
+          document.getElementById('markAllBtn').style.display = 'none';
+          return;
+        }
+
+        const unreadCount = notifs.filter(n => !n.read).length;
+        document.getElementById('markAllBtn').style.display = unreadCount > 0 ? 'inline-flex' : 'none';
+
+        const sorted = [...notifs].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        document.getElementById('notifList').innerHTML = sorted.map(n => {
+          const iconColor = n.type === 'success' ? 'var(--success-100)' : n.type === 'warning' ? 'var(--warning-100)' : n.type === 'error' ? 'var(--error-100)' : 'var(--primary-100)';
+          const iconText = n.type === 'success' ? '✓' : n.type === 'warning' ? '!' : n.type === 'error' ? '×' : 'i';
+          return `
+            <div class="notif-item ${n.read ? '' : 'unread'}" style="cursor:pointer" onclick="markRead(${n.id})">
+              <div class="notif-icon" style="background:${iconColor};color:var(--text)">${iconText}</div>
+              <div style="flex:1">
+                <div class="flex-between">
+                  <div style="font-weight:600;font-size:0.9rem">${n.title || 'Notification'}</div>
+                  ${!n.read ? '<span class="badge badge-primary" style="font-size:0.65rem">New</span>' : ''}
+                </div>
+                <div class="text-sm text-soft mt-1">${n.message || ''}</div>
+                ${n.date ? `<div class="text-sm text-muted mt-1">${n.date}</div>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function markRead(id) {
+        const notifs = Store.notifications();
+        const n = notifs.find(x => x.id === id);
+        if (n) {
+          n.read = true;
+          Store.saveNotifications(notifs);
+          renderNotifications();
+        }
+      }
+
+      function markAllRead() {
+        const notifs = Store.notifications();
+        notifs.forEach(n => { n.read = true; });
+        Store.saveNotifications(notifs);
+        toast('All notifications marked as read');
+        renderNotifications();
+      }
+    </script>
+  </body>
+</html>

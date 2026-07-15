@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Details — AgriMarket Ghana</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+  </head>
+  <body>
+    <div id="nav"></div>
+
+    <!-- Product Detail -->
+    <section class="container" style="padding:2rem 1rem" id="productSection"></section>
+
+    <!-- Related Products -->
+    <section class="container" style="padding:1rem 1rem 3rem" id="relatedSection"></section>
+
+    <div id="footer"></div>
+
+    <script>
+      mountLayout('marketplace');
+
+      const params = new URLSearchParams(window.location.search);
+      const productId = parseInt(params.get('id'));
+      const product = PRODUCTS.find(p => p.id === productId);
+
+      if (!product) {
+        document.getElementById('productSection').innerHTML = emptyState('Product Not Found', 'The product you\'re looking for doesn\'t exist or has been removed.', '/pages/marketplace.html', 'Back to Marketplace');
+      } else {
+        document.title = product.name + ' — AgriMarket Ghana';
+        document.getElementById('productSection').innerHTML = `
+          <div style="margin-bottom:1rem">
+            <a href="/pages/marketplace.html" style="font-size:0.875rem;color:var(--text-soft)">← Back to Marketplace</a>
+          </div>
+          <div class="grid grid-2" style="gap:2rem;align-items:start">
+            <div>
+              <img src="${PEXELS(product.img, 600, 600)}" alt="${product.name}" style="width:100%;border-radius:var(--radius-lg);box-shadow:var(--shadow)" />
+            </div>
+            <div>
+              <span class="badge badge-primary">${product.category}</span>
+              <h1 style="margin:0.75rem 0 0.5rem">${product.name}</h1>
+              <p class="text-soft" style="margin-bottom:0.5rem">Sold by <strong>${product.seller}</strong></p>
+              <p style="color:var(--accent-500);font-size:1.2rem;margin-bottom:1rem">${stars(product.rating)} <span class="text-soft" style="font-size:0.875rem">(${product.rating} rating)</span></p>
+
+              <div style="border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:1rem 0;margin-bottom:1rem">
+                <div class="flex-between" style="margin-bottom:0.5rem">
+                  <span class="text-soft">Price</span>
+                  <span class="price" style="font-size:1.5rem">${fmtMoney(product.price)} <span class="unit">/ ${product.unit}</span></span>
+                </div>
+                <div class="flex-between">
+                  <span class="text-soft">Availability</span>
+                  <span class="badge ${product.stock > 10 ? 'badge-success' : 'badge-warning'}">${product.stock > 10 ? 'In Stock' : 'Low Stock'} (${product.stock} ${product.unit})</span>
+                </div>
+              </div>
+
+              <p style="margin-bottom:1.5rem">${product.desc}</p>
+
+              <div class="form-group" style="max-width:200px">
+                <label>Quantity</label>
+                <div class="flex gap-1" style="align-items:center">
+                  <button class="btn btn-outline btn-sm" onclick="changeQty(-1)">−</button>
+                  <input type="number" id="qtyInput" value="1" min="1" max="${product.stock}" style="width:70px;text-align:center;padding:0.5rem;border:1px solid var(--border);border-radius:var(--radius);font-size:0.9rem" readonly />
+                  <button class="btn btn-outline btn-sm" onclick="changeQty(1)">+</button>
+                </div>
+              </div>
+
+              <div class="flex gap-1" style="flex-wrap:wrap">
+                <button class="btn btn-primary btn-lg" onclick="addToCart()">Add to Cart</button>
+                <a href="/pages/cart.html" class="btn btn-outline btn-lg">View Cart</a>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Related products (same category, exclude current)
+        const related = PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+        if (related.length > 0) {
+          document.getElementById('relatedSection').innerHTML = `
+            <div class="section-header">
+              <h2>Related Products</h2>
+              <p>You might also like these</p>
+            </div>
+            <div class="grid grid-4">
+              ${related.map(p => `
+                <div class="card card-hover" style="padding:0;overflow:hidden">
+                  <a href="/pages/product-details.html?id=${p.id}">
+                    <img src="${PEXELS(p.img, 400, 300)}" alt="${p.name}" style="width:100%;height:200px;object-fit:cover" />
+                  </a>
+                  <div class="product-body">
+                    <h4 style="margin:0 0 0.25rem;font-size:0.95rem"><a href="/pages/product-details.html?id=${p.id}" style="color:var(--text)">${p.name}</a></h4>
+                    <p class="text-sm text-soft">${p.seller}</p>
+                    <div class="flex-between mt-1">
+                      <span class="price">${fmtMoney(p.price)} <span class="unit">/ ${p.unit}</span></span>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
+      }
+
+      let currentQty = 1;
+
+      function changeQty(delta) {
+        currentQty = Math.max(1, Math.min(product.stock, currentQty + delta));
+        document.getElementById('qtyInput').value = currentQty;
+      }
+
+      function addToCart() {
+        Cart.add(product.id, currentQty);
+        toast(currentQty + ' × ' + product.name + ' added to cart');
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Overview — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/admin.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      const content = `
+        <div id="welcomeBanner"></div>
+        <div class="grid grid-4 mb-4" id="statsRow"></div>
+        <div class="grid grid-2 mb-4">
+          <div class="card">
+            <h3 class="mb-2">Revenue Overview</h3>
+            <div id="revenueChart"></div>
+          </div>
+          <div class="card">
+            <h3 class="mb-2">User Distribution</h3>
+            <div id="userDonut"></div>
+          </div>
+        </div>
+        <div class="card mb-4">
+          <div class="flex-between mb-2">
+            <h3>Recent Orders</h3>
+            <a href="/pages/manage-orders.html" class="btn btn-ghost btn-sm">View All →</a>
+          </div>
+          <div id="recentOrders"></div>
+        </div>
+      `;
+      initAdminPage('/pages/admin-dashboard.html', 'Admin Overview', content);
+
+      renderDashboard();
+
+      function renderDashboard() {
+        const user = Auth.get();
+        const users = Store.users();
+        const orders = Store.orders();
+        const income = Store.income();
+        const totalRevenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+        const pendingApprovals = users.filter(u => u.status === 'pending').length;
+
+        // Welcome banner with Pexels background
+        document.getElementById('welcomeBanner').innerHTML = `
+          <div style="position:relative;border-radius:var(--radius-lg,12px);overflow:hidden;margin-bottom:1.5rem;background-image:linear-gradient(135deg,rgba(15,74,35,0.85),rgba(26,122,62,0.75)),url('${PEXELS(440731, 1200, 400)}');background-size:cover;background-position:center;padding:2.5rem;color:#fff">
+            <h2 style="color:#fff;font-size:1.75rem;margin-bottom:0.5rem">Welcome back, ${user.name}</h2>
+            <p style="color:rgba(255,255,255,0.9);max-width:500px">Here's what's happening across AgriMarket Ghana today. Monitor users, orders, revenue, and platform activity from one place.</p>
+            <div style="margin-top:1rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+              <a href="/pages/manage-users.html" class="btn btn-accent btn-sm" style="background:var(--accent-500);color:#1a1a1a">Manage Users</a>
+              <a href="/pages/admin-reports.html" class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3)">View Reports</a>
+            </div>
+          </div>
+        `;
+
+        // Stats row
+        document.getElementById('statsRow').innerHTML = `
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--primary-100)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-600)" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div><div><div class="stat-value">${users.length}</div><div class="stat-label">Total Users</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--accent-100)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-600)" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></svg></div><div><div class="stat-value">${PRODUCTS.length}</div><div class="stat-label">Products</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--success-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div><div class="stat-value">${orders.length}</div><div class="stat-label">Orders</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--warning-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warning-600)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="stat-value">${fmtMoney(totalRevenue)}</div><div class="stat-label">Revenue</div></div></div>
+        `;
+
+        renderRevenueChart(income);
+        renderUserDonut(users);
+        renderRecentOrders(orders);
+      }
+
+      function renderRevenueChart(income) {
+        if (!income || income.length === 0) {
+          document.getElementById('revenueChart').innerHTML = emptyState('No revenue data yet', 'Income records will appear here once farmers start logging sales.', '/pages/admin-reports.html', 'View Reports');
+          return;
+        }
+        // Group by month
+        const byMonth = {};
+        income.forEach(i => {
+          const d = new Date(i.date || Date.now());
+          const key = d.toLocaleDateString('en-GH', { month: 'short', year: '2-digit' });
+          byMonth[key] = (byMonth[key] || 0) + (i.amount || 0);
+        });
+        const labels = Object.keys(byMonth);
+        const values = Object.values(byMonth);
+        const maxVal = Math.max(...values, 1);
+        const barColor = 'var(--primary-500)';
+        const chartHeight = 200;
+
+        document.getElementById('revenueChart').innerHTML = `
+          <div style="display:flex;align-items:flex-end;gap:0.5rem;height:${chartHeight}px;padding:0.5rem 0">
+            ${labels.map((label, idx) => {
+              const h = Math.round((values[idx] / maxVal) * (chartHeight - 40));
+              return `
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+                  <div style="font-size:0.7rem;color:var(--text-soft);margin-bottom:0.25rem">${fmtMoney(values[idx])}</div>
+                  <div style="width:100%;max-width:48px;height:${h}px;background:${barColor};border-radius:6px 6px 0 0;transition:height 0.3s;min-height:4px"></div>
+                  <div style="font-size:0.7rem;color:var(--text-soft);margin-top:0.5rem">${label}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
+      function renderUserDonut(users) {
+        if (!users || users.length === 0) {
+          document.getElementById('userDonut').innerHTML = emptyState('No users yet', 'Registered users across roles will be visualized here.', '/pages/manage-users.html', 'Manage Users');
+          return;
+        }
+        // Group by role
+        const byRole = {};
+        users.forEach(u => {
+          const role = u.role || 'Consumer';
+          byRole[role] = (byRole[role] || 0) + 1;
+        });
+        const roles = Object.keys(byRole);
+        const counts = Object.values(byRole);
+        const total = counts.reduce((s, c) => s + c, 0);
+        const colors = ['var(--primary-500)', 'var(--accent-500)', 'var(--success-600)', 'var(--warning-500)', 'var(--error-500)', 'var(--neutral-500)'];
+
+        // Build donut using conic-gradient
+        let acc = 0;
+        const segments = roles.map((role, idx) => {
+          const pct = (counts[idx] / total) * 100;
+          const seg = `${colors[idx % colors.length]} ${acc}% ${acc + pct}%`;
+          acc += pct;
+          return seg;
+        }).join(', ');
+
+        document.getElementById('userDonut').innerHTML = `
+          <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+            <div style="width:140px;height:140px;border-radius:50%;background:conic-gradient(${segments});display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <div style="width:90px;height:90px;border-radius:50%;background:var(--white);display:flex;flex-direction:column;align-items:center;justify-content:center">
+                <div style="font-size:1.5rem;font-weight:700;font-family:var(--font-head)">${total}</div>
+                <div style="font-size:0.7rem;color:var(--text-soft)">Users</div>
+              </div>
+            </div>
+            <div style="flex:1;min-width:140px">
+              ${roles.map((role, idx) => `
+                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
+                  <span style="width:12px;height:12px;border-radius:3px;background:${colors[idx % colors.length]};display:inline-block"></span>
+                  <span class="text-sm" style="flex:1">${role}</span>
+                  <strong class="text-sm">${counts[idx]}</strong>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderRecentOrders(orders) {
+        if (!orders || orders.length === 0) {
+          document.getElementById('recentOrders').innerHTML = emptyState('No orders yet', 'Orders placed on the platform will appear here.', '/pages/manage-orders.html', 'Manage Orders');
+          return;
+        }
+        const recent = [...orders].sort((a, b) => (b.id || 0) - (a.id || 0)).slice(0, 5);
+        document.getElementById('recentOrders').innerHTML = `
+          <div class="table-wrap"><table>
+            <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+              ${recent.map(o => `
+                <tr>
+                  <td><strong>#${(o.id || '').toString().slice(-6)}</strong></td>
+                  <td>${o.customer || o.buyer || '—'}</td>
+                  <td>${(o.items || []).length}</td>
+                  <td>${fmtMoney(o.total || 0)}</td>
+                  <td><span class="badge ${statusBadge(o.status)}">${o.status || 'Pending'}</span></td>
+                  <td class="text-sm text-soft">${o.date ? new Date(o.date).toLocaleDateString('en-GH') : '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table></div>
+        `;
+      }
+
+      function statusBadge(status) {
+        const s = (status || '').toLowerCase();
+        if (s === 'delivered' || s === 'completed') return 'badge-success';
+        if (s === 'shipped' || s === 'processing') return 'badge-primary';
+        if (s === 'cancelled') return 'badge-error';
+        return 'badge-warning';
+      }
+    </script>
+  </body>
+</html>

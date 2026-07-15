@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cart — AgriMarket Ghana</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+  </head>
+  <body>
+    <div id="nav"></div>
+
+    <!-- Page Header -->
+    <section class="page-header">
+      <div class="container">
+        <h1>Shopping Cart</h1>
+        <p>Review your items before checkout</p>
+      </div>
+    </section>
+
+    <!-- Cart -->
+    <section class="container" style="padding:2rem 1rem">
+      <div class="grid grid-3" style="grid-template-columns:2fr 1fr;align-items:start">
+        <!-- Cart Items -->
+        <div id="cartItems"></div>
+
+        <!-- Order Summary -->
+        <div class="card" id="orderSummary" style="position:sticky;top:1rem"></div>
+      </div>
+    </section>
+
+    <div id="footer"></div>
+
+    <script>
+      mountLayout('marketplace');
+      renderCart();
+
+      function renderCart() {
+        const cart = Cart.get();
+        const items = cart.map(ci => {
+          const product = PRODUCTS.find(p => p.id === ci.id);
+          return { ...ci, product };
+        }).filter(ci => ci.product);
+
+        if (items.length === 0) {
+          document.getElementById('cartItems').innerHTML = emptyState('Your cart is empty', 'Browse the marketplace and add fresh produce to your cart.', '/pages/marketplace.html', 'Browse Marketplace');
+          document.getElementById('orderSummary').innerHTML = '';
+          return;
+        }
+
+        // Cart items
+        document.getElementById('cartItems').innerHTML = `
+          <div class="card" style="padding:0;overflow:hidden">
+            ${items.map(item => `
+              <div style="display:flex;gap:1rem;padding:1rem;border-bottom:1px solid var(--border);align-items:center">
+                <img src="${PEXELS(item.product.img, 120, 120)}" alt="${item.product.name}" style="width:80px;height:80px;border-radius:var(--radius);object-fit:cover;flex-shrink:0" />
+                <div style="flex:1">
+                  <h4 style="font-size:0.95rem;margin-bottom:0.25rem">${item.product.name}</h4>
+                  <p class="text-sm text-soft">${item.product.seller} · ${fmtMoney(item.product.price)} / ${item.product.unit}</p>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem">
+                  <button class="btn btn-outline btn-sm" onclick="updateQty(${item.id}, ${item.qty - 1})">−</button>
+                  <span style="min-width:30px;text-align:center;font-weight:600">${item.qty}</span>
+                  <button class="btn btn-outline btn-sm" onclick="updateQty(${item.id}, ${item.qty + 1})">+</button>
+                </div>
+                <div style="text-align:right;min-width:100px">
+                  <div style="font-weight:700;color:var(--primary-600)">${fmtMoney(item.product.price * item.qty)}</div>
+                  <button class="btn btn-ghost btn-sm" style="color:var(--error-500);padding:0.25rem 0.5rem" onclick="removeItem(${item.id})">Remove</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        // Order summary
+        const subtotal = items.reduce((s, i) => s + (i.product.price * i.qty), 0);
+        const shipping = subtotal >= 200 ? 0 : 15;
+        const tax = subtotal * 0.05;
+        const total = subtotal + shipping + tax;
+
+        document.getElementById('orderSummary').innerHTML = `
+          <h3 style="margin-bottom:1rem">Order Summary</h3>
+          <div class="summary-row">
+            <span class="text-soft">Subtotal</span>
+            <span>${fmtMoney(subtotal)}</span>
+          </div>
+          <div class="summary-row">
+            <span class="text-soft">Shipping</span>
+            <span>${shipping === 0 ? '<span style="color:var(--success-600)">Free</span>' : fmtMoney(shipping)}</span>
+          </div>
+          <div class="summary-row">
+            <span class="text-soft">Tax (5%)</span>
+            <span>${fmtMoney(tax)}</span>
+          </div>
+          ${shipping > 0 ? `<p class="text-sm text-soft" style="margin-top:0.5rem">Add ${fmtMoney(200 - subtotal)} more for free shipping</p>` : ''}
+          <div class="summary-total">
+            <span>Total</span>
+            <span style="color:var(--primary-600)">${fmtMoney(total)}</span>
+          </div>
+          <a href="/pages/checkout.html" class="btn btn-primary btn-block btn-lg mt-2">Proceed to Checkout</a>
+          <a href="/pages/marketplace.html" class="btn btn-outline btn-block mt-1">Continue Shopping</a>
+        `;
+      }
+
+      function updateQty(id, qty) {
+        if (qty < 1) {
+          removeItem(id);
+          return;
+        }
+        Cart.update(id, qty);
+        renderCart();
+      }
+
+      function removeItem(id) {
+        Cart.remove(id);
+        toast('Item removed from cart');
+        renderCart();
+      }
+    </script>
+  </body>
+</html>

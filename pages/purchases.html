@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Purchases — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/buyer.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      let currentFilter = 'all';
+
+      const content = `
+        <p class="text-soft mb-3">Track your purchase history</p>
+
+        <div class="tabs">
+          <div class="tab active" id="tabAll" onclick="filterPurchases('all')">All</div>
+          <div class="tab" id="tabDelivered" onclick="filterPurchases('delivered')">Delivered</div>
+          <div class="tab" id="tabPending" onclick="filterPurchases('pending')">Pending</div>
+        </div>
+
+        <div class="card"><div id="purchasesList"></div></div>
+      `;
+      initBuyerPage('/pages/purchases.html', 'Purchases', content);
+
+      renderPurchases();
+
+      function renderPurchases() {
+        const orders = Store.orders();
+
+        let filtered = orders;
+        if (currentFilter === 'delivered') {
+          filtered = orders.filter(o => o.status === 'Delivered');
+        } else if (currentFilter === 'pending') {
+          filtered = orders.filter(o => o.status !== 'Delivered');
+        }
+
+        if (filtered.length === 0) {
+          const msg = currentFilter === 'delivered'
+            ? 'You have no delivered orders yet.'
+            : currentFilter === 'pending'
+              ? 'You have no pending orders.'
+              : 'You haven\'t made any purchases yet. Start shopping to see your purchases here.';
+          document.getElementById('purchasesList').innerHTML = emptyState('No purchases found', msg, currentFilter === 'all' ? '/pages/marketplace.html' : null, currentFilter === 'all' ? 'Browse Marketplace' : null);
+          return;
+        }
+
+        const sorted = [...filtered].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        document.getElementById('purchasesList').innerHTML = `
+          <div class="table-wrap"><table>
+            <thead><tr><th>Order ID</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              ${sorted.map(o => `
+                <tr>
+                  <td><strong>#${o.id}</strong></td>
+                  <td>${o.date || '—'}</td>
+                  <td>${o.items ? o.items.length : 0} item(s)</td>
+                  <td style="font-weight:600">${fmtMoney(o.total || 0)}</td>
+                  <td>
+                    <span class="badge ${o.status === 'Delivered' ? 'badge-success' : o.status === 'Cancelled' ? 'badge-error' : 'badge-warning'}">${o.status || 'Pending'}</span>
+                  </td>
+                  <td>
+                    <a href="/pages/order-tracking.html?id=${o.id}" class="btn btn-ghost btn-sm">Track</a>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table></div>
+        `;
+      }
+
+      function filterPurchases(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        if (filter === 'all') document.getElementById('tabAll').classList.add('active');
+        else if (filter === 'delivered') document.getElementById('tabDelivered').classList.add('active');
+        else document.getElementById('tabPending').classList.add('active');
+        renderPurchases();
+      }
+    </script>
+  </body>
+</html>

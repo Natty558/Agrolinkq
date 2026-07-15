@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register — AgriMarket Ghana</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <style>
+      .role-card{border:2px solid var(--border);border-radius:var(--radius);padding:1rem;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--white)}
+      .role-card:hover{border-color:var(--primary-300);transform:translateY(-2px)}
+      .role-card.selected{border-color:var(--primary-500);background:var(--primary-50)}
+      .role-card .role-icon{font-size:2rem;margin-bottom:0.25rem}
+      .role-card h4{font-size:0.85rem;margin-bottom:0}
+      .role-card p{font-size:0.75rem;color:var(--text-soft);margin-top:0.25rem}
+    </style>
+  </head>
+  <body>
+    <div class="auth-page">
+      <div class="auth-card card">
+        <div style="text-align:center;margin-bottom:1.5rem">
+          <a href="/index.html" class="nav-logo" style="justify-content:center;margin-bottom:0.5rem">
+            <svg viewBox="0 0 32 32" width="32" height="32"><circle cx="16" cy="16" r="16" fill="#1a7a3e"/><path d="M16 7c-4 4-6 8-6 11a6 6 0 0012 0c0-3-2-7-6-11z" fill="#fff"/></svg>
+            AgriMarket
+          </a>
+          <h2>Create Your Account</h2>
+          <p class="subtitle">Join Ghana's agricultural marketplace today</p>
+        </div>
+
+        <!-- Step 1: Role Selection -->
+        <div id="stepRole">
+          <h4 style="margin-bottom:0.75rem">Choose Your Role</h4>
+          <div class="grid grid-3" style="gap:0.5rem;margin-bottom:1.5rem" id="roleGrid"></div>
+        </div>
+
+        <!-- Step 2: Registration Form -->
+        <div id="stepForm" style="display:none">
+          <div class="card" style="background:var(--primary-50);border-color:var(--primary-200);padding:0.75rem 1rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <span style="font-size:1.5rem;margin-right:0.5rem" id="selectedRoleIcon"></span>
+              <strong id="selectedRoleName"></strong>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="resetRole()">Change</button>
+          </div>
+
+          <form onsubmit="submitRegister(event)">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="rName" required placeholder="e.g. Kofi Mensah" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="rEmail" required placeholder="you@example.com" />
+              </div>
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="rPhone" required placeholder="+233 24 000 0000" pattern="(\+233|0)[\s\d]+" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Business Name</label>
+                <input type="text" id="rBusiness" placeholder="e.g. Asaase Farms" />
+              </div>
+              <div class="form-group">
+                <label>Region</label>
+                <select id="rRegion" required>
+                  <option value="">Select region</option>
+                  <option>Greater Accra</option><option>Ashanti</option><option>Western</option>
+                  <option>Western North</option><option>Eastern</option><option>Central</option>
+                  <option>Northern</option><option>Volta</option><option>Oti</option>
+                  <option>Brong-Ahafo</option><option>Bono East</option><option>Ahafo</option>
+                  <option>Upper East</option><option>Upper West</option>
+                  <option>Savannah</option><option>North East</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="rPassword" required minlength="6" placeholder="Min 6 characters" />
+              </div>
+              <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="rConfirm" required minlength="6" placeholder="Re-enter password" />
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Create Account</button>
+          </form>
+        </div>
+
+        <p class="auth-footer">Already have an account? <a href="/pages/login.html">Log in</a></p>
+      </div>
+    </div>
+
+    <script>
+      const roles = [
+        { key: 'Farmer', icon: '🌱', desc: 'Sell produce' },
+        { key: 'Wholesaler', icon: '📦', desc: 'Buy in bulk' },
+        { key: 'Retailer', icon: '🏪', desc: 'Stock your shop' },
+        { key: 'Factory', icon: '🏭', desc: 'Raw materials' },
+        { key: 'Consumer', icon: '🛒', desc: 'Buy fresh' },
+      ];
+
+      let selectedRole = '';
+
+      document.getElementById('roleGrid').innerHTML = roles.map(r => `
+        <div class="role-card" id="role-${r.key}" onclick="selectRole('${r.key}')">
+          <div class="role-icon">${r.icon}</div>
+          <h4>${r.key}</h4>
+          <p>${r.desc}</p>
+        </div>
+      `).join('');
+
+      function selectRole(key) {
+        selectedRole = key;
+        const role = roles.find(r => r.key === key);
+        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+        document.getElementById('role-' + key).classList.add('selected');
+        document.getElementById('selectedRoleIcon').textContent = role.icon;
+        document.getElementById('selectedRoleName').textContent = role.key;
+        document.getElementById('stepRole').style.display = 'none';
+        document.getElementById('stepForm').style.display = 'block';
+      }
+
+      function resetRole() {
+        selectedRole = '';
+        document.getElementById('stepRole').style.display = 'block';
+        document.getElementById('stepForm').style.display = 'none';
+        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+      }
+
+      function submitRegister(e) {
+        e.preventDefault();
+        const password = document.getElementById('rPassword').value;
+        const confirm = document.getElementById('rConfirm').value;
+        if (password !== confirm) {
+          toast('Passwords do not match');
+          return;
+        }
+
+        const users = Store.users();
+        const email = document.getElementById('rEmail').value;
+        if (users.find(u => u.email === email)) {
+          toast('An account with this email already exists');
+          return;
+        }
+
+        const user = {
+          id: Date.now(),
+          name: document.getElementById('rName').value,
+          email: email,
+          phone: document.getElementById('rPhone').value,
+          business: document.getElementById('rBusiness').value,
+          region: document.getElementById('rRegion').value,
+          role: selectedRole,
+          password: password,
+          createdAt: new Date().toISOString(),
+        };
+        users.push(user);
+        Store.saveUsers(users);
+        Auth.set({ id: user.id, name: user.name, email: user.email, role: user.role, region: user.region });
+
+        toast('Account created! Welcome to AgriMarket Ghana.');
+
+        const dashboards = {
+          Farmer: '/pages/farmer-dashboard.html',
+          Wholesaler: '/pages/buyer-dashboard.html',
+          Retailer: '/pages/buyer-dashboard.html',
+          Factory: '/pages/buyer-dashboard.html',
+          Consumer: '/pages/buyer-dashboard.html',
+          Admin: '/pages/admin-dashboard.html',
+        };
+        setTimeout(() => {
+          window.location.href = dashboards[selectedRole] || '/pages/buyer-dashboard.html';
+        }, 1000);
+      }
+    </script>
+  </body>
+</html>

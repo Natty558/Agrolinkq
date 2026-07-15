@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Track Order — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+  </head>
+  <body>
+    <div id="nav"></div>
+
+    <div class="container" style="padding:2rem 1rem">
+      <div style="max-width:800px;margin:0 auto">
+        <h1 style="margin-bottom:0.5rem">Track Your Order</h1>
+        <p class="text-soft mb-3">Enter your order ID to see the delivery status.</p>
+
+        <div class="card mb-4">
+          <div class="search-bar" style="margin-bottom:1rem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="trackInput" placeholder="Enter your order ID (e.g. 1234567890)" onkeydown="if(event.key==='Enter')trackOrder()" />
+            <button class="btn btn-primary btn-sm" onclick="trackOrder()">Track</button>
+          </div>
+        </div>
+
+        <div id="trackResult"></div>
+      </div>
+    </div>
+
+    <div id="footer"></div>
+
+    <script>
+      mountLayout('marketplace');
+
+      // Pre-fill from URL param
+      const params = new URLSearchParams(window.location.search);
+      const presetId = params.get('id');
+      if (presetId) {
+        document.getElementById('trackInput').value = presetId;
+        trackOrder();
+      }
+
+      function trackOrder() {
+        const input = document.getElementById('trackInput').value.trim();
+        const result = document.getElementById('trackResult');
+
+        if (!input) {
+          result.innerHTML = emptyState('Enter an order ID', 'Please enter your order ID to track your delivery.', null, null);
+          return;
+        }
+
+        const orders = Store.orders();
+        const orderId = parseInt(input);
+        const order = orders.find(o => o.id === orderId || String(o.id) === input);
+
+        if (!order) {
+          result.innerHTML = emptyState('Order not found', `We couldn't find an order with ID "${input}". Please check and try again.`, null, null);
+          return;
+        }
+
+        // Determine tracking steps based on status
+        const steps = [
+          { label: 'Order Placed', key: 'placed' },
+          { label: 'Confirmed', key: 'confirmed' },
+          { label: 'Processing', key: 'processing' },
+          { label: 'Out for Delivery', key: 'out_for_delivery' },
+          { label: 'Delivered', key: 'delivered' },
+        ];
+
+        const statusMap = {
+          'Pending': 0,
+          'Confirmed': 1,
+          'Processing': 2,
+          'Out for Delivery': 3,
+          'Delivered': 4,
+        };
+
+        const currentStep = statusMap[order.status] !== undefined ? statusMap[order.status] : 0;
+
+        result.innerHTML = `
+          <div class="card">
+            <div class="flex-between mb-3">
+              <div>
+                <h3 style="margin-bottom:0.25rem">Order #${order.id}</h3>
+                <p class="text-sm text-soft">${order.date || ''} · ${order.items ? order.items.length : 0} item(s) · ${fmtMoney(order.total || 0)}</p>
+              </div>
+              <span class="badge ${order.status === 'Delivered' ? 'badge-success' : 'badge-warning'}">${order.status || 'Pending'}</span>
+            </div>
+
+            <div class="tracker">
+              ${steps.map((step, i) => {
+                let cls = '';
+                if (i < currentStep) cls = 'done';
+                else if (i === currentStep) cls = 'current';
+                return `
+                  <div class="tracker-step ${cls}">
+                    <div class="dot">${i < currentStep ? '✓' : i + 1}</div>
+                    <span>${step.label}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            ${order.items && order.items.length > 0 ? `
+              <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem">
+                <h4 style="margin-bottom:0.75rem">Order Items</h4>
+                <div class="table-wrap"><table>
+                  <thead><tr><th>Product</th><th>Qty</th><th>Price</th></tr></thead>
+                  <tbody>
+                    ${order.items.map(item => {
+                      const p = PRODUCTS.find(pr => pr.id === item.id);
+                      const name = p ? p.name : item.name || 'Product';
+                      const price = p ? p.price : item.price || 0;
+                      return `
+                        <tr>
+                          <td>${name}</td>
+                          <td>${item.qty || 1}</td>
+                          <td>${fmtMoney(price * (item.qty || 1))}</td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table></div>
+              </div>
+            ` : ''}
+
+            <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem">
+              <div class="summary-total">
+                <span>Total</span>
+                <span style="color:var(--primary-600)">${fmtMoney(order.total || 0)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    </script>
+  </body>
+</html>
