@@ -254,7 +254,7 @@
         // Send confirmation email via EmailJS
         sendOrderEmail(order).then(res => {
           if (res.status === 'skipped') {
-            toast('Order placed! (Email not configured — see main.js)');
+            toast('Order placed! (Email skipped — see console)');
           } else {
             toast('Order placed! Confirmation email sent to your inbox.');
           }

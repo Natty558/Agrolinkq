@@ -85,15 +85,12 @@
             <div class="flex-between mb-3" style="flex-wrap:wrap;gap:0.5rem">
               <div>
                 <h3 style="margin-bottom:0.25rem">Order #${order.orderNumber || order.id}</h3>
-                <p class="text-sm text-soft">
-                  ${order.date || ''} · ${order.items ? order.items.length : 0} item(s) · ${fmtMoney(order.total || 0)}
-                </p>
+                <p class="text-sm text-soft">${order.date || ''} · ${order.items ? order.items.length : 0} item(s) · ${fmtMoney(order.total || 0)}</p>
                 ${order.trackingNumber ? `<p class="text-sm" style="margin-top:0.25rem"><span class="text-soft">Tracking:</span> <span style="font-family:monospace;font-weight:600">${order.trackingNumber}</span></p>` : ''}
               </div>
               <span class="badge ${order.status === 'Delivered' ? 'badge-success' : order.status === 'Cancelled' ? 'badge-error' : 'badge-warning'}">${order.status || 'Pending'}</span>
             </div>
 
-            <!-- Estimated Delivery -->
             ${order.estimatedDelivery ? `
             <div style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;background:var(--primary-50);border:1px solid var(--primary-200);border-radius:var(--radius);margin-bottom:1.5rem">
               <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-600)" stroke-width="2" width="22" height="22" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
@@ -118,7 +115,6 @@
               }).join('')}
             </div>
 
-            <!-- Delivery Agent -->
             ${order.deliveryAgent && order.deliveryAgent.name ? `
             <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.5rem">
               <h4 style="margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem">
