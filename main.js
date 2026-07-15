@@ -302,6 +302,49 @@ function sendOrderEmail(order) {
   }, EMAILJS_CONFIG.publicKey);
 }
 
+// ---- Send order status update email ----
+const STATUS_MESSAGES = {
+  'Pending': 'Your order has been received and is awaiting processing.',
+  'Processing': 'Your order is now being prepared and will be shipped soon.',
+  'Shipped': 'Great news! Your order has been shipped and is on its way to you.',
+  'Delivered': 'Your order has been delivered. Thank you for shopping with AgriMarket!',
+  'Cancelled': 'Your order has been cancelled. If you did not request this, please contact our support team.',
+};
+
+function sendOrderStatusEmail(order, newStatus) {
+  if (!EMAILJS_CONFIG.publicKey || !EMAILJS_CONFIG.serviceId || !EMAILJS_CONFIG.templateId) {
+    console.log('[EmailJS] Not configured — skipping status email.');
+    return Promise.resolve({ status: 'skipped' });
+  }
+  if (typeof emailjs === 'undefined') {
+    console.warn('[EmailJS] SDK not loaded');
+    return Promise.resolve({ status: 'skipped' });
+  }
+  const itemList = order.items.map(i => {
+    const p = PRODUCTS.find(pr => pr.id === i.id);
+    const name = p ? p.name : (i.name || 'Product');
+    const price = p ? p.price : (i.price || 0);
+    return name + ' x' + i.qty + ' - ' + fmtMoney(price * i.qty);
+  }).join('\n');
+  const statusMsg = STATUS_MESSAGES[newStatus] || 'Your order status has been updated.';
+  return emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+    to_email: order.email,
+    to_name: order.customerName,
+    order_number: order.orderNumber || ('#' + order.id),
+    tracking_number: order.trackingNumber || 'N/A',
+    order_date: order.date || '',
+    delivery_date: order.estimatedDelivery || 'TBD',
+    delivery_agent: order.deliveryAgent ? order.deliveryAgent.name : 'To be assigned',
+    agent_phone: order.deliveryAgent ? order.deliveryAgent.phone : '',
+    items_list: itemList,
+    order_total: fmtMoney(order.total),
+    shipping_address: (order.address || '') + ', ' + (order.city || '') + ', ' + (order.region || ''),
+    customer_phone: order.phone || '',
+    payment_method: order.paymentMethod || 'N/A',
+    status_message: statusMsg,
+  }, EMAILJS_CONFIG.publicKey);
+}
+
 // ---- Dashboard sidebar nav builder ----
 function dashNav(navItems, activeHref) {
   return navItems.map(section => `
