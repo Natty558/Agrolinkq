@@ -82,13 +82,27 @@
 
         result.innerHTML = `
           <div class="card">
-            <div class="flex-between mb-3">
+            <div class="flex-between mb-3" style="flex-wrap:wrap;gap:0.5rem">
               <div>
-                <h3 style="margin-bottom:0.25rem">Order #${order.id}</h3>
-                <p class="text-sm text-soft">${order.date || ''} · ${order.items ? order.items.length : 0} item(s) · ${fmtMoney(order.total || 0)}</p>
+                <h3 style="margin-bottom:0.25rem">Order #${order.orderNumber || order.id}</h3>
+                <p class="text-sm text-soft">
+                  ${order.date || ''} · ${order.items ? order.items.length : 0} item(s) · ${fmtMoney(order.total || 0)}
+                </p>
+                ${order.trackingNumber ? `<p class="text-sm" style="margin-top:0.25rem"><span class="text-soft">Tracking:</span> <span style="font-family:monospace;font-weight:600">${order.trackingNumber}</span></p>` : ''}
               </div>
-              <span class="badge ${order.status === 'Delivered' ? 'badge-success' : 'badge-warning'}">${order.status || 'Pending'}</span>
+              <span class="badge ${order.status === 'Delivered' ? 'badge-success' : order.status === 'Cancelled' ? 'badge-error' : 'badge-warning'}">${order.status || 'Pending'}</span>
             </div>
+
+            <!-- Estimated Delivery -->
+            ${order.estimatedDelivery ? `
+            <div style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;background:var(--primary-50);border:1px solid var(--primary-200);border-radius:var(--radius);margin-bottom:1.5rem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-600)" stroke-width="2" width="22" height="22" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              <div>
+                <p class="text-sm text-soft" style="margin:0">Estimated Delivery</p>
+                <p style="font-weight:600;margin:0">${order.estimatedDelivery}</p>
+              </div>
+            </div>
+            ` : ''}
 
             <div class="tracker">
               ${steps.map((step, i) => {
@@ -103,6 +117,29 @@
                 `;
               }).join('')}
             </div>
+
+            <!-- Delivery Agent -->
+            ${order.deliveryAgent && order.deliveryAgent.name ? `
+            <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.5rem">
+              <h4 style="margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-600)" stroke-width="2" width="20" height="20"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+                Delivery Agent
+              </h4>
+              <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+                <div class="avatar avatar-lg" style="background:var(--primary-100);color:var(--primary-700)">${order.deliveryAgent.name.charAt(0)}</div>
+                <div style="flex:1;min-width:200px">
+                  <h4 style="margin-bottom:0.25rem">${order.deliveryAgent.name}</h4>
+                  <p class="text-sm text-soft">${order.deliveryAgent.vehicle} · ${order.deliveryAgent.region} Region · ${order.deliveryAgent.rating} ★</p>
+                  <p class="text-sm mt-1">
+                    <a href="tel:${order.deliveryAgent.phone}" style="display:inline-flex;align-items:center;gap:0.3rem">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                      ${order.deliveryAgent.phone}
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
+            ` : ''}
 
             ${order.items && order.items.length > 0 ? `
               <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem">

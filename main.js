@@ -225,6 +225,78 @@ function mountLayout(active) {
   document.getElementById('footer').innerHTML = buildFooter();
 }
 
+// ---- Delivery estimation ----
+const DELIVERY_AGENTS = [
+  { name: 'Kwame Asante', phone: '+233 24 111 2222', region: 'Greater Accra', vehicle: 'Motorcycle', rating: 4.9 },
+  { name: 'Yaw Boateng', phone: '+233 24 333 4444', region: 'Ashanti', vehicle: 'Van', rating: 4.7 },
+  { name: 'Akosua Mensah', phone: '+233 24 555 6666', region: 'Western', vehicle: 'Tricycle', rating: 4.8 },
+  { name: 'Kofi Owusu', phone: '+233 24 777 8888', region: 'Eastern', vehicle: 'Motorcycle', rating: 5.0 },
+  { name: 'Ama Darko', phone: '+233 24 999 0000', region: 'Central', vehicle: 'Van', rating: 4.6 },
+  { name: 'Nana Yaw', phone: '+233 24 121 3434', region: 'Northern', vehicle: 'Truck', rating: 4.5 },
+  { name: 'Adwoa Frimpong', phone: '+233 24 454 5656', region: 'Volta', vehicle: 'Motorcycle', rating: 4.8 },
+  { name: 'Kojo Antwi', phone: '+233 24 676 7878', region: 'Brong-Ahafo', vehicle: 'Van', rating: 4.7 },
+];
+
+function assignDeliveryAgent(region) {
+  const regional = DELIVERY_AGENTS.find(a => a.region === region);
+  if (regional) return regional;
+  return DELIVERY_AGENTS[Math.floor(Math.random() * DELIVERY_AGENTS.length)];
+}
+
+function estimateDeliveryDate(region, orderDate) {
+  const base = orderDate ? new Date(orderDate) : new Date();
+  const sameDayRegions = ['Greater Accra'];
+  const nextDayRegions = ['Ashanti', 'Eastern', 'Central', 'Western'];
+  let days = 3;
+  if (sameDayRegions.includes(region)) days = 1;
+  else if (nextDayRegions.includes(region)) days = 2;
+  const delivery = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+  return delivery.toLocaleDateString('en-GH', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function generateTrackingNumber() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  let tn = 'AM';
+  for (let i = 0; i < 3; i++) tn += chars[Math.floor(Math.random() * chars.length)];
+  tn += '-';
+  for (let i = 0; i < 7; i++) tn += Math.floor(Math.random() * 10);
+  return tn;
+}
+
+// ---- EmailJS config (send emails from pure frontend JS) ----
+const EMAILJS_CONFIG = {
+  publicKey: '', // <-- Paste your EmailJS public key here
+  serviceId: '', // <-- Paste your EmailJS service ID here
+  templateId: '', // <-- Paste your EmailJS template ID here
+};
+
+function sendOrderEmail(order) {
+  if (!EMAILJS_CONFIG.publicKey || !EMAILJS_CONFIG.serviceId || !EMAILJS_CONFIG.templateId) {
+    console.log('[EmailJS] Not configured — skipping email send. See EMAILJS_CONFIG in main.js.');
+    return Promise.resolve({ status: 'skipped', text: 'EmailJS not configured' });
+  }
+  if (typeof emailjs === 'undefined') {
+    console.warn('[EmailJS] SDK not loaded');
+    return Promise.resolve({ status: 'skipped', text: 'EmailJS SDK not loaded' });
+  }
+  const itemList = order.items.map(i => `${i.name} ×${i.qty} — ${fmtMoney(i.price * i.qty)}`).join('\n');
+  return emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+    to_email: order.email,
+    to_name: order.customerName,
+    order_number: order.orderNumber,
+    tracking_number: order.trackingNumber || 'N/A',
+    order_date: order.date || '',
+    delivery_date: order.estimatedDelivery || 'TBD',
+    delivery_agent: order.deliveryAgent ? order.deliveryAgent.name : 'To be assigned',
+    agent_phone: order.deliveryAgent ? order.deliveryAgent.phone : '',
+    items_list: itemList,
+    order_total: fmtMoney(order.total),
+    shipping_address: `${order.address}, ${order.city}, ${order.region}`,
+    customer_phone: order.phone,
+    payment_method: order.paymentMethod || 'N/A',
+  }, EMAILJS_CONFIG.publicKey);
+}
+
 // ---- Dashboard sidebar nav builder ----
 function dashNav(navItems, activeHref) {
   return navItems.map(section => `
