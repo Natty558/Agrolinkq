@@ -251,7 +251,6 @@
         });
         Store.saveNotifications(notifications);
 
-        // Send confirmation email via EmailJS
         sendOrderEmail(order).then(res => {
           if (res.status === 'skipped') {
             toast('Order placed! (Email skipped — see console)');

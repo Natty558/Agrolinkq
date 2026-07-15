@@ -38,7 +38,7 @@ function initAdminPage(activeHref, pageTitle, pageContent) {
             <h1>${pageTitle}</h1>
           </div>
           <div class="flex items-center gap-2">
-            <div class="avatar" style="background:var(--accent-100);color:var(--accent-700)">${user.name.charAt(0)}</div>
+            <div class="avatar" style="background:var(--accent-100);color:var(--accent-700);overflow:hidden">${user.avatar ? '<img src="'+user.avatar+'" style="width:100%;height:100%;object-fit:cover" />' : user.name.charAt(0)}</div>
           </div>
         </div>
         ${pageContent}

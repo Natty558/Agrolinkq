@@ -20,10 +20,17 @@
       const content = `
         <div class="grid grid-2" style="gap:1.5rem">
           <div class="card" style="text-align:center">
-            <div class="avatar avatar-lg" style="margin:0 auto 1rem;background:var(--primary-500);color:#fff" id="profileAvatar">U</div>
+            <div style="position:relative;width:80px;height:80px;margin:0 auto 1rem" id="avatarWrap">
+              <div class="avatar avatar-lg" style="margin:0;background:var(--primary-500);color:#fff;overflow:hidden" id="profileAvatar">U</div>
+              <label for="avatarFile" style="position:absolute;bottom:-2px;right:-2px;width:28px;height:28px;border-radius:50%;background:var(--primary-600);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--white);box-shadow:var(--shadow-sm)" title="Upload photo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </label>
+              <input type="file" id="avatarFile" accept="image/*" style="display:none" onchange="uploadAvatar(event)" />
+            </div>
             <h3 id="profileName" style="margin-bottom:0.25rem">User</h3>
             <p class="text-sm text-soft" id="profileEmail" style="margin-bottom:0.5rem">user@example.com</p>
             <span class="badge badge-primary" id="profileRole">Buyer</span>
+            <button class="btn btn-ghost btn-sm mt-2" onclick="removeAvatar()" id="removeAvatarBtn" style="display:none">Remove Photo</button>
           </div>
 
           <div class="card">
@@ -137,7 +144,7 @@
 
       function loadProfile() {
         const user = Auth.get();
-        document.getElementById('profileAvatar').textContent = (user.name || 'U').charAt(0).toUpperCase();
+        renderAvatar(user);
         document.getElementById('profileName').textContent = user.name || 'User';
         document.getElementById('profileEmail').textContent = user.email || 'user@example.com';
         document.getElementById('profileRole').textContent = user.role || 'Buyer';
@@ -178,6 +185,50 @@
         }
       }
 
+      function renderAvatar(user) {
+        const el = document.getElementById('profileAvatar');
+        if (user.avatar) {
+          el.innerHTML = '<img src="' + user.avatar + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />';
+          document.getElementById('removeAvatarBtn').style.display = 'inline-flex';
+        } else {
+          el.textContent = (user.name || 'U').charAt(0).toUpperCase();
+          document.getElementById('removeAvatarBtn').style.display = 'none';
+        }
+      }
+
+      function uploadAvatar(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+          toast('Image too large. Please use an image under 2MB.');
+          e.target.value = '';
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          const user = Auth.get();
+          user.avatar = ev.target.result;
+          Auth.set(user);
+          const users = Store.users();
+          const dbUser = users.find(u => u.id === user.id);
+          if (dbUser) { dbUser.avatar = user.avatar; Store.saveUsers(users); }
+          renderAvatar(user);
+          toast('Profile picture updated');
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function removeAvatar() {
+        const user = Auth.get();
+        delete user.avatar;
+        Auth.set(user);
+        const users = Store.users();
+        const dbUser = users.find(u => u.id === user.id);
+        if (dbUser) { delete dbUser.avatar; Store.saveUsers(users); }
+        renderAvatar(user);
+        toast('Profile picture removed');
+      }
+
       function savePersonal(e) {
         e.preventDefault();
         const user = Auth.get();
@@ -187,7 +238,10 @@
         user.region = document.getElementById('persRegion').value;
         user.address = document.getElementById('persAddress').value;
         Auth.set(user);
-        document.getElementById('profileAvatar').textContent = user.name.charAt(0).toUpperCase();
+        const users = Store.users();
+        const dbUser = users.find(u => u.id === user.id);
+        if (dbUser) { Object.assign(dbUser, { name: user.name, email: user.email, phone: user.phone, region: user.region, address: user.address }); Store.saveUsers(users); }
+        renderAvatar(user);
         document.getElementById('profileName').textContent = user.name;
         document.getElementById('profileEmail').textContent = user.email;
         toast('Profile updated');
