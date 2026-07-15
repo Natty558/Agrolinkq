@@ -21,6 +21,7 @@ function initBuyerPage(activeHref, pageTitle, pageContent) {
   ];
 
   document.getElementById('app').innerHTML = `
+    ${buildNavbar('')}
     <div class="dash-layout">
       <div class="dash-overlay" id="dashOverlay" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
       <aside class="dash-sidebar" id="sidebar">

@@ -6,6 +6,7 @@ function initFarmerPage(activeHref, pageTitle, pageContent) {
   const farmerNav = [
     { section: 'Main', items: [
       { href: '/pages/farmer-dashboard.html', label: 'Dashboard', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
+      { href: '/pages/marketplace.html', label: 'Marketplace', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></svg>' },
     ]},
     { section: 'Farm Management', items: [
       { href: '/pages/crop-management.html', label: 'Crop Management', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>' },
@@ -23,6 +24,7 @@ function initFarmerPage(activeHref, pageTitle, pageContent) {
   ];
 
   document.getElementById('app').innerHTML = `
+    ${buildNavbar('')}
     <div class="dash-layout">
       <div class="dash-overlay" id="dashOverlay" onclick="document.getElementById('sidebar').classList.remove('open');this.classList.remove('show')"></div>
       <aside class="dash-sidebar" id="sidebar">
