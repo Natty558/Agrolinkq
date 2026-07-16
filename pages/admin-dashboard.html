@@ -50,10 +50,12 @@
 
         // Welcome banner with Pexels background
         document.getElementById('welcomeBanner').innerHTML = `
-          <div style="position:relative;border-radius:var(--radius-lg,12px);overflow:hidden;margin-bottom:1.5rem;background-image:linear-gradient(135deg,rgba(15,74,35,0.85),rgba(26,122,62,0.75)),url('${PEXELS(440731, 1200, 400)}');background-size:cover;background-position:center;padding:2.5rem;color:#fff">
-            <h2 style="color:#fff;font-size:1.75rem;margin-bottom:0.5rem">Welcome back, ${user.name}</h2>
-            <p style="color:rgba(255,255,255,0.9);max-width:500px">Here's what's happening across AgriMarket Ghana today. Monitor users, orders, revenue, and platform activity from one place.</p>
-            <div style="margin-top:1rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+          <div class="dash-banner" style="background-image:linear-gradient(135deg,rgba(15,74,35,0.85),rgba(26,122,62,0.75)),url('${PEXELS(440731, 1200, 400)}')">
+            <div class="dash-banner-text">
+              <h2>Welcome back, ${user.name}</h2>
+              <p>Here's what's happening across AgriMarket Ghana today. Monitor users, orders, revenue, and platform activity from one place.</p>
+            </div>
+            <div class="dash-banner-actions">
               <a href="/pages/manage-users.html" class="btn btn-accent btn-sm" style="background:var(--accent-500);color:#1a1a1a">Manage Users</a>
               <a href="/pages/admin-reports.html" class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3)">View Reports</a>
             </div>
