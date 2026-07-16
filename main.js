@@ -116,7 +116,7 @@ function stars(rating) {
 // ---- Empty state ----
 function emptyState(title, msg, link, linkText) {
   return `
-    <div style="text:center;padding:3rem 1rem">
+    <div style="text-align:center;padding:3rem 1rem">
       <div style="font-size:3rem;margin-bottom:1rem;opacity:0.3">\u1F33E</div>
       <h3 style="color:var(--text-soft)">${title}</h3>
       <p class="text-soft mt-1" style="max-width:400px;margin:0.5rem auto">${msg}</p>
@@ -126,13 +126,34 @@ function emptyState(title, msg, link, linkText) {
 }
 
 // ---- Require auth ----
-function requireAuth() {
+function requireAuth(requiredRole) {
   if (!Auth.isLoggedIn()) {
     toast('Please log in to continue');
     setTimeout(() => window.location.href = '/pages/login.html', 1000);
     return false;
   }
+  if (requiredRole) {
+    const user = Auth.get();
+    if (requiredRole === 'Admin' && user.role !== 'Admin') {
+      toast('Admin access required');
+      setTimeout(() => window.location.href = '/pages/login.html', 1000);
+      return false;
+    }
+    if (requiredRole === 'Farmer' && user.role !== 'Farmer') {
+      toast('Farmer access required');
+      setTimeout(() => window.location.href = '/pages/login.html', 1000);
+      return false;
+    }
+  }
   return true;
+}
+
+// Centralized logout — clears auth + cart, redirects home
+function logout() {
+  Auth.clear();
+  Cart.clear();
+  toast('You have been logged out');
+  setTimeout(() => window.location.href = '/index.html', 800);
 }
 
 // ---- Navbar ----
@@ -264,17 +285,13 @@ function generateTrackingNumber() {
 }
 
 // ---- EmailJS configuration ----
-// Two separate templates: one for order confirmation, one for status updates.
-// Each template MUST have its "To Email" field set to {{to_email}} on the EmailJS dashboard.
+// Template "To Email" field MUST be set to {{to_email}} on the EmailJS dashboard.
 const EMAILJS_CONFIG = {
   publicKey: 'wSx8wjfDkG2fD4eHa',
   serviceId: 'AgriMarket',
-  templateOrderConfirmation: 'template_ukfu091',
-  templateStatusUpdate: 'template_ukfu091',
+  templateId: 'template_ukfu091',
 };
 
-// Build the shared email parameters object from an order.
-// Every field maps to a {{variable}} in the EmailJS template.
 function buildEmailParams(order) {
   const itemList = (order.items || []).map(i => {
     const p = PRODUCTS.find(pr => pr.id === i.id);
@@ -306,7 +323,6 @@ function buildEmailParams(order) {
   };
 }
 
-// Send the initial order confirmation email when an order is placed.
 function sendOrderEmail(order) {
   if (!order || !order.email) {
     console.warn('[EmailJS] No customer email on order — skipping.');
@@ -318,16 +334,9 @@ function sendOrderEmail(order) {
   }
   const params = buildEmailParams(order);
   params.status_message = 'Your order has been received and is now being processed. Thank you for shopping with AgriMarket!';
-  return emailjs.send(
-    EMAILJS_CONFIG.serviceId,
-    EMAILJS_CONFIG.templateOrderConfirmation,
-    params,
-    EMAILJS_CONFIG.publicKey
-  );
+  return emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, params, EMAILJS_CONFIG.publicKey);
 }
 
-// ---- Order status update emails ----
-// Sent whenever an admin changes the order status (Processing, Shipped, Delivered, Cancelled, etc.)
 const STATUS_MESSAGES = {
   'Pending':    'Your order has been received and is awaiting processing.',
   'Processing': 'Your order is now being prepared and will be shipped soon.',
@@ -347,12 +356,7 @@ function sendOrderStatusEmail(order, newStatus) {
   }
   const params = buildEmailParams(order);
   params.status_message = STATUS_MESSAGES[newStatus] || 'Your order status has been updated to: ' + newStatus;
-  return emailjs.send(
-    EMAILJS_CONFIG.serviceId,
-    EMAILJS_CONFIG.templateStatusUpdate,
-    params,
-    EMAILJS_CONFIG.publicKey
-  );
+  return emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, params, EMAILJS_CONFIG.publicKey);
 }
 
 // ---- Dashboard sidebar nav builder ----
@@ -360,12 +364,14 @@ function dashNav(navItems, activeHref) {
   return navItems.map(section => `
     <div class="dash-nav-section">
       <div class="dash-nav-title">${section.section}</div>
-      ${section.items.map(item => `
-        <a href="${item.href}" class="dash-nav-item ${item.href === activeHref ? 'active' : ''}">
+      ${section.items.map(item => {
+        const onclickAttr = item.onclick ? ` onclick="${item.onclick};return false;"` : '';
+        return `
+        <a href="${item.href}" class="dash-nav-item ${item.href === activeHref ? 'active' : ''}"${onclickAttr}>
           ${item.icon}
           <span>${item.label}</span>
         </a>
-      `).join('')}
+      `}).join('')}
     </div>
   `).join('');
 }

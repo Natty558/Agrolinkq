@@ -72,7 +72,7 @@
               ${filtered.map(o => `
                 <tr>
                   <td><strong>#${(o.id || '').toString().slice(-6)}</strong></td>
-                  <td>${o.customer || o.buyer || '—'}</td>
+                  <td>${o.customerName || o.customer || o.buyer || '—'}</td>
                   <td>${(o.items || []).length}</td>
                   <td>${fmtMoney(o.total || 0)}</td>
                   <td class="text-sm text-soft">${o.date ? new Date(o.date).toLocaleDateString('en-GH') : '—'}</td>

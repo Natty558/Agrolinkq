@@ -263,8 +263,15 @@
         }
 
         const user = Auth.get();
+        const users = Store.users();
+        const dbUser = users.find(u => u.id === user.id);
+        if (dbUser && dbUser.password && dbUser.password !== cur) {
+          toast('Current password is incorrect');
+          return;
+        }
         user.password = newP;
         Auth.set(user);
+        if (dbUser) { dbUser.password = newP; Store.saveUsers(users); }
         document.getElementById('curPass').value = '';
         document.getElementById('newPass').value = '';
         document.getElementById('confirmPass').value = '';
@@ -289,7 +296,7 @@
         Auth.clear();
         Cart.clear();
         toast('Logged out');
-        setTimeout(() => window.location.href = '/index.html', 1000);
+        setTimeout(() => window.location.href = '/index.html', 800);
       }
     </script>
   </body>

@@ -166,7 +166,7 @@
               ${recent.map(o => `
                 <tr>
                   <td><strong>#${(o.id || '').toString().slice(-6)}</strong></td>
-                  <td>${o.customer || o.buyer || '—'}</td>
+                  <td>${o.customerName || o.customer || o.buyer || '—'}</td>
                   <td>${(o.items || []).length}</td>
                   <td>${fmtMoney(o.total || 0)}</td>
                   <td><span class="badge ${statusBadge(o.status)}">${o.status || 'Pending'}</span></td>

@@ -24,7 +24,9 @@
       renderOrders();
 
       function renderOrders() {
-        const orders = Store.orders();
+        const user = Auth.get();
+        const allOrders = Store.orders();
+        const orders = allOrders.filter(o => o.userId === user.id || o.email === user.email);
 
         if (orders.length === 0) {
           document.getElementById('ordersList').innerHTML = emptyState('No orders yet', 'You haven\'t placed any orders yet. Start shopping to see your orders here.', '/pages/marketplace.html', 'Browse Marketplace');
