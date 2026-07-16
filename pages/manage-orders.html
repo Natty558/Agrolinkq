@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/style.css" />
     <script src="/main.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script src="/admin.js"></script>
   </head>
   <body>
@@ -72,7 +71,7 @@
               ${filtered.map(o => `
                 <tr>
                   <td><strong>#${(o.id || '').toString().slice(-6)}</strong></td>
-                  <td>${o.customerName || o.customer || o.buyer || '—'}</td>
+                  <td>${o.customer || o.buyer || '—'}</td>
                   <td>${(o.items || []).length}</td>
                   <td>${fmtMoney(o.total || 0)}</td>
                   <td class="text-sm text-soft">${o.date ? new Date(o.date).toLocaleDateString('en-GH') : '—'}</td>
@@ -98,24 +97,9 @@
         const orders = Store.orders();
         const order = orders.find(o => o.id == orderId);
         if (!order) return;
-        const oldStatus = order.status || 'Pending';
         order.status = newStatus;
         Store.saveOrders(orders);
-
-        if (oldStatus !== newStatus && order.email) {
-          sendOrderStatusEmail(order, newStatus).then(res => {
-            if (res.status === 'skipped') {
-              toast('Order status updated to ' + newStatus + ' (email skipped)');
-            } else {
-              toast('Order status updated to ' + newStatus + ' — email sent to ' + order.email);
-            }
-          }).catch(err => {
-            console.error('[EmailJS] Status email failed:', err);
-            toast('Order status updated to ' + newStatus + ' — email failed, see console');
-          });
-        } else {
-          toast('Order status updated to ' + newStatus);
-        }
+        toast('Order status updated to ' + newStatus);
         renderOrders();
       }
 

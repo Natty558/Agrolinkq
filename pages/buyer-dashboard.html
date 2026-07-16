@@ -57,9 +57,8 @@
 
       function renderBuyerDashboard() {
         const user = Auth.get();
-        const allOrders = Store.orders();
-        const orders = allOrders.filter(o => o.userId === user.id || o.email === user.email);
-        const notifs = Store.notifications().filter(n => n.userId === user.id || !n.userId);
+        const orders = Store.orders();
+        const notifs = Store.notifications();
 
         document.getElementById('welcomeName').textContent = user.name || 'Shopper';
 

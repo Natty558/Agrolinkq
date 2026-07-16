@@ -51,20 +51,6 @@
     </div>
 
     <script>
-      // Seed demo users into Store so login by email/password works
-      (function seedDemoUsers() {
-        const users = Store.users();
-        const demos = [
-          { id: 1, name: 'Kofi Mensah', email: 'kofi@demo.gh', password: 'demo123', role: 'Farmer', region: 'Ashanti', phone: '+233 24 111 2222', status: 'active', createdAt: new Date().toISOString() },
-          { id: 2, name: 'Ama Serwaa', email: 'ama@demo.gh', password: 'demo123', role: 'Wholesaler', region: 'Greater Accra', phone: '+233 24 333 4444', status: 'active', createdAt: new Date().toISOString() },
-          { id: 3, name: 'Admin User', email: 'admin@demo.gh', password: 'admin123', role: 'Admin', region: 'Greater Accra', phone: '+233 24 555 6666', status: 'active', createdAt: new Date().toISOString() },
-        ];
-        demos.forEach(d => {
-          if (!users.find(u => u.email === d.email)) users.push(d);
-        });
-        Store.saveUsers(users);
-      })();
-
       function submitLogin(e) {
         e.preventDefault();
         const email = document.getElementById('lEmail').value;
@@ -75,26 +61,21 @@
           toast('Invalid email or password. Try a demo login below.');
           return;
         }
-        if (user.status === 'suspended') {
-          toast('Your account has been suspended. Contact support.');
-          return;
-        }
-        Auth.set({ id: user.id, name: user.name, email: user.email, role: user.role, region: user.region || '', phone: user.phone || '', avatar: user.avatar || null });
+        Auth.set({ id: user.id, name: user.name, email: user.email, role: user.role, region: user.region || '' });
         toast('Welcome back, ' + user.name + '!');
         redirectByRole(user.role);
       }
 
       function demoLogin(type) {
-        const users = Store.users();
         let user;
         if (type === 'Farmer') {
-          user = users.find(u => u.email === 'kofi@demo.gh') || { id: 1, name: 'Kofi Mensah', email: 'kofi@demo.gh', role: 'Farmer', region: 'Ashanti' };
+          user = { id: 1, name: 'Kofi Mensah', email: 'kofi@demo.gh', role: 'Farmer', region: 'Ashanti' };
         } else if (type === 'Buyer') {
-          user = users.find(u => u.email === 'ama@demo.gh') || { id: 2, name: 'Ama Serwaa', email: 'ama@demo.gh', role: 'Wholesaler', region: 'Greater Accra' };
+          user = { id: 2, name: 'Ama Serwaa', email: 'ama@demo.gh', role: 'Wholesaler', region: 'Greater Accra' };
         } else {
-          user = users.find(u => u.email === 'admin@demo.gh') || { id: 3, name: 'Admin User', email: 'admin@demo.gh', role: 'Admin', region: 'Greater Accra' };
+          user = { id: 3, name: 'Admin User', email: 'admin@demo.gh', role: 'Admin', region: 'Greater Accra' };
         }
-        Auth.set({ id: user.id, name: user.name, email: user.email, role: user.role, region: user.region || '', phone: user.phone || '', avatar: user.avatar || null });
+        Auth.set(user);
         toast('Logged in as ' + type + ' demo user');
         redirectByRole(user.role);
       }

@@ -33,8 +33,7 @@
       renderPurchases();
 
       function renderPurchases() {
-        const user = Auth.get();
-        const orders = Store.orders().filter(o => o.userId === user.id || o.email === user.email);
+        const orders = Store.orders();
 
         let filtered = orders;
         if (currentFilter === 'delivered') {

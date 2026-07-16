@@ -6,18 +6,18 @@ const PEXELS = (id, w = 400, h = 400) =>
 
 // ---- Static marketplace products ----
 const PRODUCTS = [
-  { id: 1, name: 'Fresh Tomatoes', category: 'Vegetables', price: 15, unit: 'kg', stock: 120, seller: 'Asaase Farms', rating: 4.8, img: 533280, desc: 'Freshly harvested tomatoes grown in the rich soils of the Eastern Region.' },
-  { id: 2, name: 'Maize (Dried)', category: 'Grains', price: 8, unit: 'bag (50kg)', stock: 200, seller: 'Kofi Farms', rating: 4.6, img: 5648605, desc: 'Quality dried maize from the Ashanti Region. Great for milling and kenkey.' },
-  { id: 3, name: 'Free-Range Eggs', category: 'Poultry', price: 30, unit: 'crate', stock: 80, seller: 'Akua Poultry', rating: 4.9, img: 35304487, desc: 'Farm-fresh free-range eggs from healthy hens in the Central Region.' },
-  { id: 4, name: 'Pure Honey', category: 'Specialty', price: 80, unit: 'jar (500ml)', stock: 50, seller: 'Ananse Apiary', rating: 5.0, img: 3379022, desc: 'Pure, raw honey from the Brong-Ahafo Region. No additives.' },
-  { id: 5, name: 'Fresh Spinach', category: 'Vegetables', price: 10, unit: 'bunch', stock: 90, seller: 'Asaase Farms', rating: 4.5, img: 2255935, desc: 'Crisp, tender spinach leaves (kontomire). Washed and ready to cook.' },
-  { id: 6, name: 'Ripe Plantain', category: 'Fruits', price: 12, unit: 'bunch', stock: 150, seller: 'Nana Farms', rating: 4.7, img: 102104, desc: 'Sweet ripe plantains from the Western Region. Perfect for kelewele.' },
-  { id: 7, name: 'Local Rice', category: 'Grains', price: 25, unit: 'bag (25kg)', stock: 70, seller: 'Volta Rice Mills', rating: 4.4, img: 32506154, desc: 'Premium local rice from the Volta Region. Stone-free and aromatic.' },
-  { id: 8, name: 'Fresh Milk', category: 'Dairy', price: 20, unit: 'liter', stock: 100, seller: 'Akua Poultry', rating: 4.8, img: 236010, desc: 'Fresh, pasteurized whole milk from grass-fed cows in the Eastern Region.' },
-  { id: 9, name: 'Green Pepper', category: 'Vegetables', price: 18, unit: 'kg', stock: 60, seller: 'Kofi Farms', rating: 4.3, img: 186840, desc: 'Crisp green bell peppers, great for stews, stir-fries, and salads.' },
-  { id: 10, name: 'Watermelon', category: 'Fruits', price: 15, unit: 'piece', stock: 40, seller: 'Nana Farms', rating: 4.9, img: 1313267, desc: 'Sweet, juicy watermelons from the Northern Region.' },
-  { id: 11, name: 'Yam (Pona)', category: 'Tubers', price: 20, unit: 'tuber', stock: 110, seller: 'Savannah Farms', rating: 4.5, img: 16839719, desc: 'Premium Pona yam from the Northern Region. Perfect for fufu.' },
-  { id: 12, name: 'Smoked Fish', category: 'Specialty', price: 35, unit: 'kg', stock: 30, seller: 'Ananse Apiary', rating: 4.7, img: 699544, desc: 'Quality smoked tilapia from Lake Volta. Ready for soups and stews.' },
+  { id: 1, name: 'Fresh Tomatoes', category: 'Vegetables', price: 15, unit: 'kg', stock: 120, seller: 'Asaase Farms', rating: 4.8, img: 533280, region: 'Eastern', desc: 'Freshly harvested tomatoes grown in the rich soils of the Eastern Region.' },
+  { id: 2, name: 'Maize (Dried)', category: 'Grains', price: 8, unit: 'bag (50kg)', stock: 200, seller: 'Kofi Farms', rating: 4.6, img: 5648605, region: 'Ashanti', desc: 'Quality dried maize from the Ashanti Region. Great for milling and kenkey.' },
+  { id: 3, name: 'Free-Range Eggs', category: 'Poultry', price: 30, unit: 'crate', stock: 80, seller: 'Akua Poultry', rating: 4.9, img: 35304487, region: 'Central', desc: 'Farm-fresh free-range eggs from healthy hens in the Central Region.' },
+  { id: 4, name: 'Pure Honey', category: 'Specialty', price: 80, unit: 'jar (500ml)', stock: 50, seller: 'Ananse Apiary', rating: 5.0, img: 3379022, region: 'Brong-Ahafo', desc: 'Pure, raw honey from the Brong-Ahafo Region. No additives.' },
+  { id: 5, name: 'Fresh Spinach', category: 'Vegetables', price: 10, unit: 'bunch', stock: 90, seller: 'Asaase Farms', rating: 4.5, img: 2255935, region: 'Eastern', desc: 'Crisp, tender spinach leaves (kontomire). Washed and ready to cook.' },
+  { id: 6, name: 'Ripe Plantain', category: 'Fruits', price: 12, unit: 'bunch', stock: 150, seller: 'Nana Farms', rating: 4.7, img: 102104, region: 'Western', desc: 'Sweet ripe plantains from the Western Region. Perfect for kelewele.' },
+  { id: 7, name: 'Local Rice', category: 'Grains', price: 25, unit: 'bag (25kg)', stock: 70, seller: 'Volta Rice Mills', rating: 4.4, img: 32506154, region: 'Volta', desc: 'Premium local rice from the Volta Region. Stone-free and aromatic.' },
+  { id: 8, name: 'Fresh Milk', category: 'Dairy', price: 20, unit: 'liter', stock: 100, seller: 'Akua Poultry', rating: 4.8, img: 236010, region: 'Eastern', desc: 'Fresh, pasteurized whole milk from grass-fed cows in the Eastern Region.' },
+  { id: 9, name: 'Green Pepper', category: 'Vegetables', price: 18, unit: 'kg', stock: 60, seller: 'Kofi Farms', rating: 4.3, img: 186840, region: 'Ashanti', desc: 'Crisp green bell peppers, great for stews, stir-fries, and salads.' },
+  { id: 10, name: 'Watermelon', category: 'Fruits', price: 15, unit: 'piece', stock: 40, seller: 'Nana Farms', rating: 4.9, img: 1313267, region: 'Northern', desc: 'Sweet, juicy watermelons from the Northern Region.' },
+  { id: 11, name: 'Yam (Pona)', category: 'Tubers', price: 20, unit: 'tuber', stock: 110, seller: 'Savannah Farms', rating: 4.5, img: 16839719, region: 'Northern', desc: 'Premium Pona yam from the Northern Region. Perfect for fufu.' },
+  { id: 12, name: 'Smoked Fish', category: 'Specialty', price: 35, unit: 'kg', stock: 30, seller: 'Ananse Apiary', rating: 4.7, img: 699544, region: 'Volta', desc: 'Quality smoked tilapia from Lake Volta. Ready for soups and stews.' },
 ];
 
 const CATEGORIES = ['Vegetables', 'Grains', 'Poultry', 'Dairy', 'Fruits', 'Tubers', 'Specialty'];
@@ -116,7 +116,7 @@ function stars(rating) {
 // ---- Empty state ----
 function emptyState(title, msg, link, linkText) {
   return `
-    <div style="text-align:center;padding:3rem 1rem">
+    <div style="text:center;padding:3rem 1rem">
       <div style="font-size:3rem;margin-bottom:1rem;opacity:0.3">\u1F33E</div>
       <h3 style="color:var(--text-soft)">${title}</h3>
       <p class="text-soft mt-1" style="max-width:400px;margin:0.5rem auto">${msg}</p>
@@ -126,34 +126,13 @@ function emptyState(title, msg, link, linkText) {
 }
 
 // ---- Require auth ----
-function requireAuth(requiredRole) {
+function requireAuth() {
   if (!Auth.isLoggedIn()) {
     toast('Please log in to continue');
     setTimeout(() => window.location.href = '/pages/login.html', 1000);
     return false;
   }
-  if (requiredRole) {
-    const user = Auth.get();
-    if (requiredRole === 'Admin' && user.role !== 'Admin') {
-      toast('Admin access required');
-      setTimeout(() => window.location.href = '/pages/login.html', 1000);
-      return false;
-    }
-    if (requiredRole === 'Farmer' && user.role !== 'Farmer') {
-      toast('Farmer access required');
-      setTimeout(() => window.location.href = '/pages/login.html', 1000);
-      return false;
-    }
-  }
   return true;
-}
-
-// Centralized logout — clears auth + cart, redirects home
-function logout() {
-  Auth.clear();
-  Cart.clear();
-  toast('You have been logged out');
-  setTimeout(() => window.location.href = '/index.html', 800);
 }
 
 // ---- Navbar ----
@@ -246,132 +225,92 @@ function mountLayout(active) {
   document.getElementById('footer').innerHTML = buildFooter();
 }
 
-// ---- Delivery estimation ----
-const DELIVERY_AGENTS = [
-  { name: 'Kwame Asante', phone: '+233 24 111 2222', region: 'Greater Accra', vehicle: 'Motorcycle', rating: 4.9 },
-  { name: 'Yaw Boateng', phone: '+233 24 333 4444', region: 'Ashanti', vehicle: 'Van', rating: 4.7 },
-  { name: 'Akosua Mensah', phone: '+233 24 555 6666', region: 'Western', vehicle: 'Tricycle', rating: 4.8 },
-  { name: 'Kofi Owusu', phone: '+233 24 777 8888', region: 'Eastern', vehicle: 'Motorcycle', rating: 5.0 },
-  { name: 'Ama Darko', phone: '+233 24 999 0000', region: 'Central', vehicle: 'Van', rating: 4.6 },
-  { name: 'Nana Yaw', phone: '+233 24 121 3434', region: 'Northern', vehicle: 'Truck', rating: 4.5 },
-  { name: 'Adwoa Frimpong', phone: '+233 24 454 5656', region: 'Volta', vehicle: 'Motorcycle', rating: 4.8 },
-  { name: 'Kojo Antwi', phone: '+233 24 676 7878', region: 'Brong-Ahafo', vehicle: 'Van', rating: 4.7 },
-];
+// ---- Location helpers ----
+const GHANA_REGIONS = ['Greater Accra','Ashanti','Western','Western North','Eastern','Central','Northern','Volta','Oti','Brong-Ahafo','Bono East','Ahafo','Upper East','Upper West','Savannah','North East'];
 
-function assignDeliveryAgent(region) {
-  const regional = DELIVERY_AGENTS.find(a => a.region === region);
-  if (regional) return regional;
-  return DELIVERY_AGENTS[Math.floor(Math.random() * DELIVERY_AGENTS.length)];
-}
-
-function estimateDeliveryDate(region, orderDate) {
-  const base = orderDate ? new Date(orderDate) : new Date();
-  const sameDayRegions = ['Greater Accra'];
-  const nextDayRegions = ['Ashanti', 'Eastern', 'Central', 'Western'];
-  let days = 3;
-  if (sameDayRegions.includes(region)) days = 1;
-  else if (nextDayRegions.includes(region)) days = 2;
-  const delivery = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
-  return delivery.toLocaleDateString('en-GH', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
-}
-
-function generateTrackingNumber() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  let tn = 'AM';
-  for (let i = 0; i < 3; i++) tn += chars[Math.floor(Math.random() * chars.length)];
-  tn += '-';
-  for (let i = 0; i < 7; i++) tn += Math.floor(Math.random() * 10);
-  return tn;
-}
-
-// ---- EmailJS configuration ----
-// Template "To Email" field MUST be set to {{to_email}} on the EmailJS dashboard.
-const EMAILJS_CONFIG = {
-  publicKey: 'wSx8wjfDkG2fD4eHa',
-  serviceId: 'AgriMarket',
-  templateId: 'template_ukfu091',
+// Approximate lat/lng centroids for Ghanaian regions (for distance sorting)
+const REGION_COORDS = {
+  'Greater Accra': { lat: 5.6037, lng: -0.1870 },
+  'Ashanti':       { lat: 6.7300, lng: -1.5800 },
+  'Western':       { lat: 5.1050, lng: -2.0650 },
+  'Western North': { lat: 6.5000, lng: -2.5000 },
+  'Eastern':       { lat: 6.1000, lng: -0.4000 },
+  'Central':       { lat: 5.3500, lng: -1.2500 },
+  'Northern':      { lat: 9.4000, lng: -0.8500 },
+  'Volta':          { lat: 6.8000, lng: 0.5000 },
+  'Oti':            { lat: 8.0000, lng: 0.5000 },
+  'Brong-Ahafo':    { lat: 7.7500, lng: -2.1000 },
+  'Bono East':      { lat: 7.5000, lng: -1.2500 },
+  'Ahafo':          { lat: 6.7500, lng: -2.5000 },
+  'Upper East':     { lat: 10.7000, lng: -0.9000 },
+  'Upper West':     { lat: 10.0000, lng: -2.3000 },
+  'Savannah':       { lat: 8.8000, lng: -1.2000 },
+  'North East':     { lat: 10.2000, lng: -0.4000 },
 };
 
-function buildEmailParams(order) {
-  const itemList = (order.items || []).map(i => {
-    const p = PRODUCTS.find(pr => pr.id === i.id);
-    const name = p ? p.name : (i.name || 'Product');
-    const price = p ? p.price : (i.price || 0);
-    const qty = i.qty || 1;
-    return name + ' x' + qty + ' = ' + fmtMoney(price * qty);
-  }).join('\n');
-
-  const agent = order.deliveryAgent || {};
-  const address = [order.address, order.city, order.region].filter(Boolean).join(', ');
-
-  return {
-    to_email: order.email || '',
-    to_name: order.customerName || 'Valued Customer',
-    order_number: order.orderNumber || ('#' + order.id),
-    tracking_number: order.trackingNumber || 'N/A',
-    order_date: order.date || '',
-    delivery_date: order.estimatedDelivery || 'To be confirmed',
-    delivery_agent: agent.name || 'To be assigned',
-    agent_phone: agent.phone || '',
-    agent_vehicle: agent.vehicle || '',
-    agent_region: agent.region || '',
-    items_list: itemList || 'No items',
-    order_total: fmtMoney(order.total || 0),
-    shipping_address: address || 'N/A',
-    customer_phone: order.phone || 'N/A',
-    payment_method: order.paymentMethod || 'N/A',
-  };
+// Get user's region via browser geolocation API
+function detectLocation(callback) {
+  if (!navigator.geolocation) {
+    toast('Geolocation is not supported by your browser');
+    return;
+  }
+  toast('Detecting your location...');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      const region = nearestRegion(latitude, longitude);
+      callback({ region, lat: latitude, lng: longitude });
+    },
+    (err) => {
+      console.warn('[Geolocation] Error:', err.message);
+      toast('Could not detect your location. Please select your region manually.');
+    },
+    { timeout: 10000, enableHighAccuracy: false }
+  );
 }
 
-function sendOrderEmail(order) {
-  if (!order || !order.email) {
-    console.warn('[EmailJS] No customer email on order — skipping.');
-    return Promise.resolve({ status: 'skipped' });
+// Find the nearest Ghanaian region to a lat/lng point
+function nearestRegion(lat, lng) {
+  let nearest = null;
+  let minDist = Infinity;
+  for (const [region, coords] of Object.entries(REGION_COORDS)) {
+    const dist = haversine(lat, lng, coords.lat, coords.lng);
+    if (dist < minDist) { minDist = dist; nearest = region; }
   }
-  if (typeof emailjs === 'undefined') {
-    console.warn('[EmailJS] SDK not loaded — skipping.');
-    return Promise.resolve({ status: 'skipped' });
-  }
-  const params = buildEmailParams(order);
-  params.status_message = 'Your order has been received and is now being processed. Thank you for shopping with AgriMarket!';
-  return emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, params, EMAILJS_CONFIG.publicKey);
+  return nearest;
 }
 
-const STATUS_MESSAGES = {
-  'Pending':    'Your order has been received and is awaiting processing.',
-  'Processing': 'Your order is now being prepared and will be shipped soon.',
-  'Shipped':    'Great news! Your order has been shipped and is on its way to you.',
-  'Delivered':  'Your order has been delivered. Thank you for shopping with AgriMarket!',
-  'Cancelled':  'Your order has been cancelled. If you did not request this, please contact our support team immediately.',
-};
-
-function sendOrderStatusEmail(order, newStatus) {
-  if (!order || !order.email) {
-    console.warn('[EmailJS] No customer email on order — skipping status email.');
-    return Promise.resolve({ status: 'skipped' });
-  }
-  if (typeof emailjs === 'undefined') {
-    console.warn('[EmailJS] SDK not loaded — skipping status email.');
-    return Promise.resolve({ status: 'skipped' });
-  }
-  const params = buildEmailParams(order);
-  params.status_message = STATUS_MESSAGES[newStatus] || 'Your order status has been updated to: ' + newStatus;
-  return emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, params, EMAILJS_CONFIG.publicKey);
+// Haversine distance in km
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// ---- Dashboard sidebar nav builder ----
+// Sort products by distance from user's region (nearest first)
+function sortByNearest(userRegion) {
+  const userCoords = REGION_COORDS[userRegion];
+  if (!userCoords) return [...PRODUCTS];
+  return [...PRODUCTS].sort((a, b) => {
+    const distA = haversine(userCoords.lat, userCoords.lng, REGION_COORDS[a.region].lat, REGION_COORDS[a.region].lng);
+    const distB = haversine(userCoords.lat, userCoords.lng, REGION_COORDS[b.region].lat, REGION_COORDS[b.region].lng);
+    return distA - distB;
+  });
+}
+
+
 function dashNav(navItems, activeHref) {
   return navItems.map(section => `
     <div class="dash-nav-section">
       <div class="dash-nav-title">${section.section}</div>
-      ${section.items.map(item => {
-        const onclickAttr = item.onclick ? ` onclick="${item.onclick};return false;"` : '';
-        return `
-        <a href="${item.href}" class="dash-nav-item ${item.href === activeHref ? 'active' : ''}"${onclickAttr}>
+      ${section.items.map(item => `
+        <a href="${item.href}" class="dash-nav-item ${item.href === activeHref ? 'active' : ''}">
           ${item.icon}
           <span>${item.label}</span>
         </a>
-      `}).join('')}
+      `).join('')}
     </div>
   `).join('');
 }

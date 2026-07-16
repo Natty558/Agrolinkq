@@ -28,7 +28,6 @@ export default defineConfig({
         orders: resolve(__dirname, 'pages/orders.html'),
         purchases: resolve(__dirname, 'pages/purchases.html'),
         orderTracking: resolve(__dirname, 'pages/order-tracking.html'),
-        orderConfirmation: resolve(__dirname, 'pages/order-confirmation.html'),
         notifications: resolve(__dirname, 'pages/notifications.html'),
         profile: resolve(__dirname, 'pages/profile.html'),
         adminDashboard: resolve(__dirname, 'pages/admin-dashboard.html'),
