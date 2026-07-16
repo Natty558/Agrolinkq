@@ -263,86 +263,96 @@ function generateTrackingNumber() {
   return tn;
 }
 
-// ---- EmailJS config (send emails from pure frontend JS) ----
+// ---- EmailJS configuration ----
+// Two separate templates: one for order confirmation, one for status updates.
+// Each template MUST have its "To Email" field set to {{to_email}} on the EmailJS dashboard.
 const EMAILJS_CONFIG = {
   publicKey: 'wSx8wjfDkG2fD4eHa',
   serviceId: 'AgriMarket',
-  templateId: 'template_ukfu091',
+  templateOrderConfirmation: 'template_ukfu091',
+  templateStatusUpdate: 'template_ukfu091',
 };
 
-function sendOrderEmail(order) {
-  if (!EMAILJS_CONFIG.publicKey || !EMAILJS_CONFIG.serviceId || !EMAILJS_CONFIG.templateId) {
-    console.log('[EmailJS] Not configured — skipping email send.');
-    return Promise.resolve({ status: 'skipped' });
-  }
-  if (typeof emailjs === 'undefined') {
-    console.warn('[EmailJS] SDK not loaded');
-    return Promise.resolve({ status: 'skipped' });
-  }
-  const itemList = order.items.map(i => {
+// Build the shared email parameters object from an order.
+// Every field maps to a {{variable}} in the EmailJS template.
+function buildEmailParams(order) {
+  const itemList = (order.items || []).map(i => {
     const p = PRODUCTS.find(pr => pr.id === i.id);
     const name = p ? p.name : (i.name || 'Product');
     const price = p ? p.price : (i.price || 0);
-    return name + ' x' + i.qty + ' - ' + fmtMoney(price * i.qty);
+    const qty = i.qty || 1;
+    return name + ' x' + qty + ' = ' + fmtMoney(price * qty);
   }).join('\n');
-  return emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
-    to_email: order.email,
-    to_name: order.customerName,
+
+  const agent = order.deliveryAgent || {};
+  const address = [order.address, order.city, order.region].filter(Boolean).join(', ');
+
+  return {
+    to_email: order.email || '',
+    to_name: order.customerName || 'Valued Customer',
     order_number: order.orderNumber || ('#' + order.id),
     tracking_number: order.trackingNumber || 'N/A',
     order_date: order.date || '',
-    delivery_date: order.estimatedDelivery || 'TBD',
-    delivery_agent: order.deliveryAgent ? order.deliveryAgent.name : 'To be assigned',
-    agent_phone: order.deliveryAgent ? order.deliveryAgent.phone : '',
-    items_list: itemList,
-    order_total: fmtMoney(order.total),
-    shipping_address: order.address + ', ' + order.city + ', ' + order.region,
-    customer_phone: order.phone,
+    delivery_date: order.estimatedDelivery || 'To be confirmed',
+    delivery_agent: agent.name || 'To be assigned',
+    agent_phone: agent.phone || '',
+    agent_vehicle: agent.vehicle || '',
+    agent_region: agent.region || '',
+    items_list: itemList || 'No items',
+    order_total: fmtMoney(order.total || 0),
+    shipping_address: address || 'N/A',
+    customer_phone: order.phone || 'N/A',
     payment_method: order.paymentMethod || 'N/A',
-  }, EMAILJS_CONFIG.publicKey);
+  };
 }
 
-// ---- Send order status update email ----
+// Send the initial order confirmation email when an order is placed.
+function sendOrderEmail(order) {
+  if (!order || !order.email) {
+    console.warn('[EmailJS] No customer email on order — skipping.');
+    return Promise.resolve({ status: 'skipped' });
+  }
+  if (typeof emailjs === 'undefined') {
+    console.warn('[EmailJS] SDK not loaded — skipping.');
+    return Promise.resolve({ status: 'skipped' });
+  }
+  const params = buildEmailParams(order);
+  params.status_message = 'Your order has been received and is now being processed. Thank you for shopping with AgriMarket!';
+  return emailjs.send(
+    EMAILJS_CONFIG.serviceId,
+    EMAILJS_CONFIG.templateOrderConfirmation,
+    params,
+    EMAILJS_CONFIG.publicKey
+  );
+}
+
+// ---- Order status update emails ----
+// Sent whenever an admin changes the order status (Processing, Shipped, Delivered, Cancelled, etc.)
 const STATUS_MESSAGES = {
-  'Pending': 'Your order has been received and is awaiting processing.',
+  'Pending':    'Your order has been received and is awaiting processing.',
   'Processing': 'Your order is now being prepared and will be shipped soon.',
-  'Shipped': 'Great news! Your order has been shipped and is on its way to you.',
-  'Delivered': 'Your order has been delivered. Thank you for shopping with AgriMarket!',
-  'Cancelled': 'Your order has been cancelled. If you did not request this, please contact our support team.',
+  'Shipped':    'Great news! Your order has been shipped and is on its way to you.',
+  'Delivered':  'Your order has been delivered. Thank you for shopping with AgriMarket!',
+  'Cancelled':  'Your order has been cancelled. If you did not request this, please contact our support team immediately.',
 };
 
 function sendOrderStatusEmail(order, newStatus) {
-  if (!EMAILJS_CONFIG.publicKey || !EMAILJS_CONFIG.serviceId || !EMAILJS_CONFIG.templateId) {
-    console.log('[EmailJS] Not configured — skipping status email.');
+  if (!order || !order.email) {
+    console.warn('[EmailJS] No customer email on order — skipping status email.');
     return Promise.resolve({ status: 'skipped' });
   }
   if (typeof emailjs === 'undefined') {
-    console.warn('[EmailJS] SDK not loaded');
+    console.warn('[EmailJS] SDK not loaded — skipping status email.');
     return Promise.resolve({ status: 'skipped' });
   }
-  const itemList = order.items.map(i => {
-    const p = PRODUCTS.find(pr => pr.id === i.id);
-    const name = p ? p.name : (i.name || 'Product');
-    const price = p ? p.price : (i.price || 0);
-    return name + ' x' + i.qty + ' - ' + fmtMoney(price * i.qty);
-  }).join('\n');
-  const statusMsg = STATUS_MESSAGES[newStatus] || 'Your order status has been updated.';
-  return emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
-    to_email: order.email,
-    to_name: order.customerName,
-    order_number: order.orderNumber || ('#' + order.id),
-    tracking_number: order.trackingNumber || 'N/A',
-    order_date: order.date || '',
-    delivery_date: order.estimatedDelivery || 'TBD',
-    delivery_agent: order.deliveryAgent ? order.deliveryAgent.name : 'To be assigned',
-    agent_phone: order.deliveryAgent ? order.deliveryAgent.phone : '',
-    items_list: itemList,
-    order_total: fmtMoney(order.total),
-    shipping_address: (order.address || '') + ', ' + (order.city || '') + ', ' + (order.region || ''),
-    customer_phone: order.phone || '',
-    payment_method: order.paymentMethod || 'N/A',
-    status_message: statusMsg,
-  }, EMAILJS_CONFIG.publicKey);
+  const params = buildEmailParams(order);
+  params.status_message = STATUS_MESSAGES[newStatus] || 'Your order status has been updated to: ' + newStatus;
+  return emailjs.send(
+    EMAILJS_CONFIG.serviceId,
+    EMAILJS_CONFIG.templateStatusUpdate,
+    params,
+    EMAILJS_CONFIG.publicKey
+  );
 }
 
 // ---- Dashboard sidebar nav builder ----

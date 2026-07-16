@@ -102,7 +102,6 @@
         order.status = newStatus;
         Store.saveOrders(orders);
 
-        // Send status update email to customer
         if (oldStatus !== newStatus && order.email) {
           sendOrderStatusEmail(order, newStatus).then(res => {
             if (res.status === 'skipped') {
