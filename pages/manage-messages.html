@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages — AgriMarket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/main.js"></script>
+    <script src="/admin.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <!-- Message Detail Modal -->
+    <div class="modal-overlay" id="msgModal">
+      <div class="modal">
+        <div id="msgDetail"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeMsgModal()">Close</button>
+          <button type="button" class="btn btn-primary" id="markRepliedBtn" onclick="markReplied()">Mark as Replied</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let filterType = 'all';
+      let currentMsgId = null;
+
+      const content = `
+        <div class="flex-between mb-3" style="flex-wrap:wrap;gap:1rem">
+          <p class="text-soft">Messages from the contact form</p>
+          <div class="flex gap-1" style="flex-wrap:wrap">
+            <button class="btn btn-sm ${filterType === 'all' ? 'btn-primary' : 'btn-outline'}" onclick="setFilter('all')">All</button>
+            <button class="btn btn-sm ${filterType === 'unread' ? 'btn-primary' : 'btn-outline'}" onclick="setFilter('unread')">Unread</button>
+            <button class="btn btn-sm ${filterType === 'pending' ? 'btn-primary' : 'btn-outline'}" onclick="setFilter('pending')">Needs Reply</button>
+          </div>
+        </div>
+        <div class="card">
+          <div id="msgList"></div>
+        </div>
+      `;
+      initAdminPage('/pages/manage-messages.html', 'Messages', content);
+
+      renderMessages();
+
+      function setFilter(type) {
+        filterType = type;
+        renderMessages();
+      }
+
+      function renderMessages() {
+        let messages = Store.messages() || [];
+
+        if (filterType === 'unread') {
+          messages = messages.filter(m => !m.read);
+        } else if (filterType === 'pending') {
+          messages = messages.filter(m => !m.replied);
+        }
+
+        if (messages.length === 0) {
+          document.getElementById('msgList').innerHTML = emptyState('No messages', 'Messages submitted through the contact form will appear here.', null, null);
+          return;
+        }
+
+        const sorted = [...messages].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+        document.getElementById('msgList').innerHTML = sorted.map(m => `
+          <div class="notif-item ${m.read ? '' : 'unread'}" style="cursor:pointer" onclick="openMsg(${m.id})">
+            <div class="notif-icon" style="background:${m.replied ? 'var(--success-100)' : 'var(--primary-100)'};color:var(--text)">${m.replied ? '✓' : '✉'}</div>
+            <div style="flex:1;min-width:0">
+              <div class="flex-between">
+                <div style="font-weight:600;font-size:0.9rem">${m.name}</div>
+                <div style="display:flex;gap:0.25rem;align-items:center">
+                  ${!m.read ? '<span class="badge badge-primary" style="font-size:0.65rem">New</span>' : ''}
+                  ${m.replied ? '<span class="badge badge-success" style="font-size:0.65rem">Replied</span>' : ''}
+                </div>
+              </div>
+              <div class="text-sm text-soft mt-1"><strong>${m.subject}</strong> — ${m.message.substring(0, 80)}${m.message.length > 80 ? '...' : ''}</div>
+              <div class="text-sm text-muted mt-1">${m.email}${m.phone ? ' · ' + m.phone : ''} · ${m.date ? new Date(m.date).toLocaleDateString('en-GH') : ''}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function openMsg(id) {
+        const messages = Store.messages();
+        const m = messages.find(x => x.id === id);
+        if (!m) return;
+
+        if (!m.read) {
+          m.read = true;
+          Store.saveMessages(messages);
+          renderMessages();
+        }
+
+        currentMsgId = id;
+
+        document.getElementById('msgDetail').innerHTML = `
+          <h3>${m.subject}</h3>
+          <div style="margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem">
+              <div class="avatar" style="width:36px;height:36px;font-size:0.9rem;background:var(--primary-100);color:var(--primary-700)">${m.name.charAt(0)}</div>
+              <div>
+                <div style="font-weight:600">${m.name}</div>
+                <div class="text-sm text-soft">${m.email}${m.phone ? ' · ' + m.phone : ''}</div>
+              </div>
+            </div>
+            <div class="text-sm text-muted">${m.date ? new Date(m.date).toLocaleString('en-GH') : ''}</div>
+          </div>
+          <p style="line-height:1.6;white-space:pre-wrap">${m.message}</p>
+          <div style="margin-top:1.5rem;padding:1rem;background:var(--neutral-50);border-radius:var(--radius)">
+            <p class="text-sm text-soft" style="margin-bottom:0.5rem"><strong>Reply via email:</strong></p>
+            <a href="mailto:${m.email}?subject=Re: ${encodeURIComponent(m.subject)}" class="btn btn-primary btn-sm">Compose Reply Email</a>
+          </div>
+        `;
+
+        document.getElementById('markRepliedBtn').textContent = m.replied ? 'Mark as Not Replied' : 'Mark as Replied';
+        document.getElementById('msgModal').classList.add('show');
+      }
+
+      function closeMsgModal() {
+        document.getElementById('msgModal').classList.remove('show');
+        currentMsgId = null;
+      }
+
+      function markReplied() {
+        if (!currentMsgId) return;
+        const messages = Store.messages();
+        const m = messages.find(x => x.id === currentMsgId);
+        if (!m) return;
+        m.replied = !m.replied;
+        Store.saveMessages(messages);
+        toast(m.replied ? 'Message marked as replied' : 'Message marked as not replied');
+        document.getElementById('markRepliedBtn').textContent = m.replied ? 'Mark as Not Replied' : 'Mark as Replied';
+        renderMessages();
+      }
+    </script>
+  </body>
+</html>

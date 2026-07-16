@@ -121,6 +121,25 @@
       function submitContact(e) {
         e.preventDefault();
         const name = document.getElementById('cName').value;
+        const email = document.getElementById('cEmail').value;
+        const phone = document.getElementById('cPhone').value;
+        const subject = document.getElementById('cSubject').value;
+        const message = document.getElementById('cMessage').value;
+
+        const messages = Store.messages();
+        messages.push({
+          id: Date.now(),
+          name: name,
+          email: email,
+          phone: phone,
+          subject: subject,
+          message: message,
+          date: new Date().toISOString(),
+          read: false,
+          replied: false,
+        });
+        Store.saveMessages(messages);
+
         toast('Thank you, ' + name + '! Your message has been sent. We\'ll respond within 24 hours.');
         e.target.reset();
       }
