@@ -55,15 +55,21 @@
                 </div>
                 <div class="form-group">
                   <label>Region</label>
-                  <select id="shipRegion" required>
-                    <option value="">Select region</option>
-                    <option>Greater Accra</option><option>Ashanti</option><option>Western</option>
-                    <option>Western North</option><option>Eastern</option><option>Central</option>
-                    <option>Northern</option><option>Volta</option><option>Oti</option>
-                    <option>Brong-Ahafo</option><option>Bono East</option><option>Ahafo</option>
-                    <option>Upper East</option><option>Upper West</option>
-                    <option>Savannah</option><option>North East</option>
-                  </select>
+                  <div style="display:flex;gap:0.5rem">
+                    <select id="shipRegion" required style="flex:1">
+                      <option value="">Select region</option>
+                      <option>Greater Accra</option><option>Ashanti</option><option>Western</option>
+                      <option>Western North</option><option>Eastern</option><option>Central</option>
+                      <option>Northern</option><option>Volta</option><option>Oti</option>
+                      <option>Brong-Ahafo</option><option>Bono East</option><option>Ahafo</option>
+                      <option>Upper East</option><option>Upper West</option>
+                      <option>Savannah</option><option>North East</option>
+                    </select>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="autoDetectRegion()" style="white-space:nowrap;display:flex;align-items:center;gap:0.3rem" title="Detect my region">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      Detect
+                    </button>
+                  </div>
                 </div>
               </div>
               <div class="form-group">
@@ -133,19 +139,30 @@
     <script>
       mountLayout('marketplace');
 
+      function autoDetectRegion() {
+        detectLocation((result) => {
+          document.getElementById('shipRegion').value = result.region;
+          toast('Region detected: ' + result.region);
+        });
+      }
+
       const cart = Cart.get();
       const items = cart.map(ci => {
         const product = PRODUCTS.find(p => p.id === ci.id);
         return { ...ci, product };
       }).filter(ci => ci.product);
 
+      let cartTotals = { subtotal: 0, shipping: 0, tax: 0, total: 0 };
+
       if (items.length === 0) {
         document.querySelector('section.container').innerHTML = emptyState('Your cart is empty', 'Add some products to your cart before checking out.', '/pages/marketplace.html', 'Browse Marketplace');
       } else {
-        const subtotal = items.reduce((s, i) => s + (i.product.price * i.qty), 0);
-        const shipping = subtotal >= 200 ? 0 : 15;
-        const tax = subtotal * 0.05;
-        const total = subtotal + shipping + tax;
+        cartTotals.subtotal = items.reduce((s, i) => s + (i.product.price * i.qty), 0);
+        cartTotals.shipping = cartTotals.subtotal >= 200 ? 0 : 15;
+        cartTotals.tax = cartTotals.subtotal * 0.05;
+        cartTotals.total = cartTotals.subtotal + cartTotals.shipping + cartTotals.tax;
+
+        const { subtotal, shipping, tax, total } = cartTotals;
 
         document.getElementById('orderSummary').innerHTML = `
           <h3 style="margin-bottom:1rem">Order Summary</h3>
@@ -221,10 +238,10 @@
           notes: document.getElementById('shipNotes').value,
           paymentMethod: document.getElementById('payMethod').value,
           items: items.map(i => ({ id: i.id, name: i.product.name, qty: i.qty, price: i.product.price, unit: i.product.unit, img: i.product.img })),
-          subtotal: subtotal,
-          shipping: shipping,
-          tax: tax,
-          total: total,
+          subtotal: cartTotals.subtotal,
+          shipping: cartTotals.shipping,
+          tax: cartTotals.tax,
+          total: cartTotals.total,
           status: 'Processing',
           createdAt: new Date().toISOString(),
         };

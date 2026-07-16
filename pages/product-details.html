@@ -41,7 +41,13 @@
               <img src="${PEXELS(product.img, 600, 600)}" alt="${product.name}" style="width:100%;border-radius:var(--radius-lg);box-shadow:var(--shadow)" />
             </div>
             <div>
-              <span class="badge badge-primary">${product.category}</span>
+              <div style="display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.5rem">
+                <span class="badge badge-primary">${product.category}</span>
+                <span class="badge badge-neutral" style="display:inline-flex;align-items:center;gap:0.2rem">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  ${product.region} Region
+                </span>
+              </div>
               <h1 style="margin:0.75rem 0 0.5rem">${product.name}</h1>
               <p class="text-soft" style="margin-bottom:0.5rem">Sold by <strong>${product.seller}</strong></p>
               <p style="color:var(--accent-500);font-size:1.2rem;margin-bottom:1rem">${stars(product.rating)} <span class="text-soft" style="font-size:0.875rem">(${product.rating} rating)</span></p>
