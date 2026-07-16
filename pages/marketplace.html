@@ -29,20 +29,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="searchInput" placeholder="Search products, sellers, categories..." oninput="renderProducts()" />
         </div>
-        <div class="flex gap-1" style="align-items:center;flex-wrap:wrap">
-          <button class="btn btn-outline btn-sm" id="nearMeBtn" onclick="toggleNearMe()" style="display:flex;align-items:center;gap:0.3rem">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Near Me
-          </button>
-          <select id="regionFilter" onchange="renderProducts()" style="padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius);font-size:0.875rem;background:var(--white)">
-            <option value="">All Regions</option>
-            <option>Greater Accra</option><option>Ashanti</option><option>Western</option>
-            <option>Western North</option><option>Eastern</option><option>Central</option>
-            <option>Northern</option><option>Volta</option><option>Oti</option>
-            <option>Brong-Ahafo</option><option>Bono East</option><option>Ahafo</option>
-            <option>Upper East</option><option>Upper West</option>
-            <option>Savannah</option><option>North East</option>
-          </select>
+        <div class="flex gap-1" style="align-items:center">
           <label class="text-sm text-soft" style="white-space:nowrap">Sort by:</label>
           <select id="sortSelect" onchange="renderProducts()" style="padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius);font-size:0.875rem;background:var(--white)">
             <option value="featured">Featured</option>
@@ -50,7 +37,6 @@
             <option value="price-high">Price: High to Low</option>
             <option value="rating">Rating</option>
             <option value="name">Name (A-Z)</option>
-            <option value="nearest">Nearest to Me</option>
           </select>
         </div>
       </div>
@@ -68,8 +54,6 @@
       mountLayout('marketplace');
 
       let activeCategory = 'All';
-      let nearMeActive = false;
-      let userRegion = null;
 
       // Category chips
       document.getElementById('categoryChips').innerHTML = ['All', ...CATEGORIES].map(cat => `
@@ -83,41 +67,14 @@
         renderProducts();
       }
 
-      function toggleNearMe() {
-        if (nearMeActive) {
-          nearMeActive = false;
-          userRegion = null;
-          document.getElementById('nearMeBtn').classList.remove('btn-primary');
-          document.getElementById('nearMeBtn').classList.add('btn-outline');
-          document.getElementById('regionFilter').value = '';
-          renderProducts();
-          return;
-        }
-        detectLocation((result) => {
-          nearMeActive = true;
-          userRegion = result.region;
-          document.getElementById('nearMeBtn').classList.remove('btn-outline');
-          document.getElementById('nearMeBtn').classList.add('btn-primary');
-          document.getElementById('regionFilter').value = result.region;
-          toast('Showing products near you: ' + result.region + ' Region');
-          renderProducts();
-        });
-      }
-
       function renderProducts() {
         const search = document.getElementById('searchInput').value.toLowerCase();
         const sort = document.getElementById('sortSelect').value;
-        const regionFilter = document.getElementById('regionFilter').value;
         let products = [...PRODUCTS];
 
         // Filter by category
         if (activeCategory !== 'All') {
           products = products.filter(p => p.category === activeCategory);
-        }
-
-        // Filter by region
-        if (regionFilter) {
-          products = products.filter(p => p.region === regionFilter);
         }
 
         // Filter by search
@@ -135,14 +92,6 @@
           case 'price-high': products.sort((a, b) => b.price - a.price); break;
           case 'rating': products.sort((a, b) => b.rating - a.rating); break;
           case 'name': products.sort((a, b) => a.name.localeCompare(b.name)); break;
-          case 'nearest':
-            if (userRegion) {
-              products = sortByNearest(userRegion);
-            } else {
-              const u = Auth.get();
-              if (u && u.region) products = sortByNearest(u.region);
-            }
-            break;
         }
 
         if (products.length === 0) {
@@ -156,13 +105,7 @@
               <img src="${PEXELS(p.img, 400, 300)}" alt="${p.name}" style="width:100%;height:200px;object-fit:cover" />
             </a>
             <div class="product-body">
-              <div style="display:flex;gap:0.25rem;flex-wrap:wrap">
-                <span class="badge badge-primary">${p.category}</span>
-                <span class="badge badge-neutral" style="display:inline-flex;align-items:center;gap:0.2rem">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  ${p.region}
-                </span>
-              </div>
+              <span class="badge badge-primary">${p.category}</span>
               <h4 style="margin:0.5rem 0 0.25rem;font-size:1rem"><a href="/pages/product-details.html?id=${p.id}" style="color:var(--text)">${p.name}</a></h4>
               <p class="text-sm text-soft">${p.seller} · ${stars(p.rating)}</p>
               <div class="flex-between mt-1">

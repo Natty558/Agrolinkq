@@ -107,13 +107,7 @@
             <img src="${PEXELS(p.img, 400, 300)}" alt="${p.name}" style="width:100%;height:200px;object-fit:cover" />
           </a>
           <div class="product-body">
-            <div style="display:flex;gap:0.25rem;flex-wrap:wrap">
-              <span class="badge badge-primary">${p.category}</span>
-              <span class="badge badge-neutral" style="display:inline-flex;align-items:center;gap:0.2rem">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                ${p.region}
-              </span>
-            </div>
+            <span class="badge badge-primary">${p.category}</span>
             <h4 style="margin:0.5rem 0 0.25rem;font-size:1rem"><a href="/pages/product-details.html?id=${p.id}" style="color:var(--text)">${p.name}</a></h4>
             <p class="text-sm text-soft">${p.seller}</p>
             <div class="flex-between mt-1">
