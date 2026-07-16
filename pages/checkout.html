@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script src="/main.js"></script>
   </head>
   <body>
@@ -135,9 +135,9 @@
       mountLayout('marketplace');
 
       // Initialize EmailJS
-      const EMAILJS_SERVICE_ID = 'service_0q5q8wb';
-      const EMAILJS_TEMPLATE_ID = 'template_order_confirm';
-      const EMAILJS_PUBLIC_KEY = 'eYBGl0pKqXJ8mNbC';
+      const EMAILJS_SERVICE_ID = 'AgriMarket';
+      const EMAILJS_TEMPLATE_ID = 'template_ukfu091';
+      const EMAILJS_PUBLIC_KEY = 'wSx8wjfDkG2fD4eHa';
       try { emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY }); } catch(e) { console.warn('EmailJS init failed:', e); }
 
       const cart = Cart.get();

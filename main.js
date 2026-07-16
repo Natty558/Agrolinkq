@@ -55,6 +55,8 @@ const Store = {
   saveNotifications: (d) => saveStore('agri_notifications', d),
   users: () => getStore('agri_users'),
   saveUsers: (d) => saveStore('agri_users', d),
+  messages: () => getStore('agri_messages'),
+  saveMessages: (d) => saveStore('agri_messages', d),
 };
 
 // ---- Auth ----

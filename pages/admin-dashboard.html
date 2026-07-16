@@ -35,6 +35,13 @@
           </div>
           <div id="recentOrders"></div>
         </div>
+        <div class="card">
+          <div class="flex-between mb-2">
+            <h3>Recent Messages</h3>
+            <a href="/pages/manage-messages.html" class="btn btn-ghost btn-sm">View All</a>
+          </div>
+          <div id="recentMessages"></div>
+        </div>
       `;
       initAdminPage('/pages/admin-dashboard.html', 'Admin Overview', content);
 
@@ -47,6 +54,7 @@
         const income = Store.income();
         const totalRevenue = orders.reduce((s, o) => s + (o.total || 0), 0);
         const pendingApprovals = users.filter(u => u.status === 'pending').length;
+        const unreadMessages = (Store.messages() || []).filter(m => !m.read).length;
 
         // Welcome banner with Pexels background
         document.getElementById('welcomeBanner').innerHTML = `
@@ -66,11 +74,13 @@
           <div class="card stat-card"><div class="stat-icon" style="background:var(--accent-100)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-600)" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></svg></div><div><div class="stat-value">${PRODUCTS.length}</div><div class="stat-label">Products</div></div></div>
           <div class="card stat-card"><div class="stat-icon" style="background:var(--success-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--success-600)" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div><div class="stat-value">${orders.length}</div><div class="stat-label">Orders</div></div></div>
           <div class="card stat-card"><div class="stat-icon" style="background:var(--warning-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warning-600)" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="stat-value">${fmtMoney(totalRevenue)}</div><div class="stat-label">Revenue</div></div></div>
+          <div class="card stat-card"><div class="stat-icon" style="background:var(--error-50)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--error-500)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><div><div class="stat-value">${unreadMessages}</div><div class="stat-label">Unread Messages</div></div></div>
         `;
 
         renderRevenueChart(income);
         renderUserDonut(users);
         renderRecentOrders(orders);
+        renderRecentMessages();
       }
 
       function renderRevenueChart(income) {
@@ -151,6 +161,28 @@
             </div>
           </div>
         `;
+      }
+
+      function renderRecentMessages() {
+        const messages = (Store.messages() || []).sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)).slice(0, 5);
+
+        if (messages.length === 0) {
+          document.getElementById('recentMessages').innerHTML = emptyState('No messages yet', 'Messages from the contact form will appear here.', '/pages/manage-messages.html', 'View Messages');
+          return;
+        }
+
+        document.getElementById('recentMessages').innerHTML = messages.map(m => `
+          <div class="notif-item ${m.read ? '' : 'unread'}" style="cursor:pointer" onclick="window.location.href='/pages/manage-messages.html'">
+            <div class="notif-icon" style="background:${m.replied ? 'var(--success-100)' : 'var(--primary-100)'};color:var(--text)">${m.replied ? '✓' : '✉'}</div>
+            <div style="flex:1;min-width:0">
+              <div class="flex-between">
+                <div style="font-weight:600;font-size:0.85rem">${m.name}</div>
+                ${!m.read ? '<span class="badge badge-primary" style="font-size:0.65rem">New</span>' : ''}
+              </div>
+              <div class="text-sm text-soft" style="margin-top:0.25rem"><strong>${m.subject}</strong> — ${(m.message || '').substring(0, 60)}${(m.message || '').length > 60 ? '...' : ''}</div>
+            </div>
+          </div>
+        `).join('');
       }
 
       function renderRecentOrders(orders) {

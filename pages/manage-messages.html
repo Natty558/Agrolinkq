@@ -38,9 +38,7 @@
             <button class="btn btn-sm ${filterType === 'pending' ? 'btn-primary' : 'btn-outline'}" onclick="setFilter('pending')">Needs Reply</button>
           </div>
         </div>
-        <div class="card">
-          <div id="msgList"></div>
-        </div>
+        <div class="card"><div id="msgList"></div></div>
       `;
       initAdminPage('/pages/manage-messages.html', 'Messages', content);
 
@@ -78,7 +76,7 @@
                   ${m.replied ? '<span class="badge badge-success" style="font-size:0.65rem">Replied</span>' : ''}
                 </div>
               </div>
-              <div class="text-sm text-soft mt-1"><strong>${m.subject}</strong> — ${m.message.substring(0, 80)}${m.message.length > 80 ? '...' : ''}</div>
+              <div class="text-sm text-soft mt-1"><strong>${m.subject}</strong> — ${(m.message || '').substring(0, 80)}${(m.message || '').length > 80 ? '...' : ''}</div>
               <div class="text-sm text-muted mt-1">${m.email}${m.phone ? ' · ' + m.phone : ''} · ${m.date ? new Date(m.date).toLocaleDateString('en-GH') : ''}</div>
             </div>
           </div>
