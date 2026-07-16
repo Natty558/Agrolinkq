@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script src="/main.js"></script>
   </head>
   <body>
@@ -133,19 +134,28 @@
     <script>
       mountLayout('marketplace');
 
+      // Initialize EmailJS
+      const EMAILJS_SERVICE_ID = 'service_0q5q8wb';
+      const EMAILJS_TEMPLATE_ID = 'template_order_confirm';
+      const EMAILJS_PUBLIC_KEY = 'eYBGl0pKqXJ8mNbC';
+      try { emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY }); } catch(e) { console.warn('EmailJS init failed:', e); }
+
       const cart = Cart.get();
       const items = cart.map(ci => {
         const product = PRODUCTS.find(p => p.id === ci.id);
         return { ...ci, product };
       }).filter(ci => ci.product);
 
+      // Shared cart totals so placeOrder can access them
+      let cartTotals = { subtotal: 0, shipping: 0, tax: 0, total: 0 };
+
       if (items.length === 0) {
         document.querySelector('section.container').innerHTML = emptyState('Your cart is empty', 'Add some products to your cart before checking out.', '/pages/marketplace.html', 'Browse Marketplace');
       } else {
-        const subtotal = items.reduce((s, i) => s + (i.product.price * i.qty), 0);
-        const shipping = subtotal >= 200 ? 0 : 15;
-        const tax = subtotal * 0.05;
-        const total = subtotal + shipping + tax;
+        cartTotals.subtotal = items.reduce((s, i) => s + (i.product.price * i.qty), 0);
+        cartTotals.shipping = cartTotals.subtotal >= 200 ? 0 : 15;
+        cartTotals.tax = cartTotals.subtotal * 0.05;
+        cartTotals.total = cartTotals.subtotal + cartTotals.shipping + cartTotals.tax;
 
         document.getElementById('orderSummary').innerHTML = `
           <h3 style="margin-bottom:1rem">Order Summary</h3>
@@ -163,19 +173,19 @@
           </div>
           <div class="summary-row">
             <span class="text-soft">Subtotal</span>
-            <span>${fmtMoney(subtotal)}</span>
+            <span>${fmtMoney(cartTotals.subtotal)}</span>
           </div>
           <div class="summary-row">
             <span class="text-soft">Shipping</span>
-            <span>${shipping === 0 ? '<span style="color:var(--success-600)">Free</span>' : fmtMoney(shipping)}</span>
+            <span>${cartTotals.shipping === 0 ? '<span style="color:var(--success-600)">Free</span>' : fmtMoney(cartTotals.shipping)}</span>
           </div>
           <div class="summary-row">
             <span class="text-soft">Tax (5%)</span>
-            <span>${fmtMoney(tax)}</span>
+            <span>${fmtMoney(cartTotals.tax)}</span>
           </div>
           <div class="summary-total">
             <span>Total</span>
-            <span style="color:var(--primary-600)">${fmtMoney(total)}</span>
+            <span style="color:var(--primary-600)">${fmtMoney(cartTotals.total)}</span>
           </div>
           <button class="btn btn-primary btn-block btn-lg mt-2" onclick="placeOrder()">Place Order</button>
           <p class="text-sm text-soft text-center mt-1">By placing your order, you agree to our terms and conditions.</p>
@@ -221,10 +231,10 @@
           notes: document.getElementById('shipNotes').value,
           paymentMethod: document.getElementById('payMethod').value,
           items: items.map(i => ({ id: i.id, name: i.product.name, qty: i.qty, price: i.product.price, unit: i.product.unit, img: i.product.img })),
-          subtotal: subtotal,
-          shipping: shipping,
-          tax: tax,
-          total: total,
+          subtotal: cartTotals.subtotal,
+          shipping: cartTotals.shipping,
+          tax: cartTotals.tax,
+          total: cartTotals.total,
           status: 'Processing',
           createdAt: new Date().toISOString(),
         };
@@ -247,10 +257,47 @@
         Store.saveNotifications(notifications);
 
         Cart.clear();
-        toast('Order placed successfully! Redirecting to order tracking...');
+        toast('Order placed successfully! A confirmation email is on the way...');
+
+        // Send order confirmation email via EmailJS
+        sendOrderEmail(order);
+
         setTimeout(() => {
           window.location.href = '/pages/order-tracking.html?id=' + order.id;
-        }, 1500);
+        }, 2000);
+      }
+
+      function sendOrderEmail(order) {
+        const itemsList = order.items.map(i =>
+          `${i.name} — ${i.qty} ${i.unit || ''} × ${fmtMoney(i.price)} = ${fmtMoney(i.price * i.qty)}`
+        ).join('\n');
+
+        const templateParams = {
+          to_email: order.email,
+          to_name: order.customerName,
+          order_number: order.orderNumber,
+          order_date: new Date(order.createdAt).toLocaleString('en-GH'),
+          customer_name: order.customerName,
+          customer_email: order.email,
+          customer_phone: order.phone,
+          shipping_address: `${order.address}, ${order.city}, ${order.region}`,
+          payment_method: order.paymentMethod,
+          order_items: itemsList,
+          subtotal: fmtMoney(order.subtotal),
+          shipping: order.shipping === 0 ? 'Free' : fmtMoney(order.shipping),
+          tax: fmtMoney(order.tax),
+          total: fmtMoney(order.total),
+          order_status: order.status,
+        };
+
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+          .then(function(response) {
+            console.log('Order confirmation email sent successfully', response);
+          })
+          .catch(function(error) {
+            console.error('Email send failed:', error);
+            toast('Order placed, but email could not be sent. Check your EmailJS config.');
+          });
       }
     </script>
   </body>

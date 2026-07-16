@@ -6,18 +6,30 @@ const PEXELS = (id, w = 400, h = 400) =>
 
 // ---- Static marketplace products ----
 const PRODUCTS = [
-  { id: 1, name: 'Fresh Tomatoes', category: 'Vegetables', price: 15, unit: 'kg', stock: 120, seller: 'Asaase Farms', rating: 4.8, img: 533280, desc: 'Freshly harvested tomatoes grown in the rich soils of the Eastern Region.' },
-  { id: 2, name: 'Maize (Dried)', category: 'Grains', price: 8, unit: 'bag (50kg)', stock: 200, seller: 'Kofi Farms', rating: 4.6, img: 5648605, desc: 'Quality dried maize from the Ashanti Region. Great for milling and kenkey.' },
-  { id: 3, name: 'Free-Range Eggs', category: 'Poultry', price: 30, unit: 'crate', stock: 80, seller: 'Akua Poultry', rating: 4.9, img: 35304487, desc: 'Farm-fresh free-range eggs from healthy hens in the Central Region.' },
-  { id: 4, name: 'Pure Honey', category: 'Specialty', price: 80, unit: 'jar (500ml)', stock: 50, seller: 'Ananse Apiary', rating: 5.0, img: 3379022, desc: 'Pure, raw honey from the Brong-Ahafo Region. No additives.' },
-  { id: 5, name: 'Fresh Spinach', category: 'Vegetables', price: 10, unit: 'bunch', stock: 90, seller: 'Asaase Farms', rating: 4.5, img: 2255935, desc: 'Crisp, tender spinach leaves (kontomire). Washed and ready to cook.' },
-  { id: 6, name: 'Ripe Plantain', category: 'Fruits', price: 12, unit: 'bunch', stock: 150, seller: 'Nana Farms', rating: 4.7, img: 102104, desc: 'Sweet ripe plantains from the Western Region. Perfect for kelewele.' },
-  { id: 7, name: 'Local Rice', category: 'Grains', price: 25, unit: 'bag (25kg)', stock: 70, seller: 'Volta Rice Mills', rating: 4.4, img: 32506154, desc: 'Premium local rice from the Volta Region. Stone-free and aromatic.' },
-  { id: 8, name: 'Fresh Milk', category: 'Dairy', price: 20, unit: 'liter', stock: 100, seller: 'Akua Poultry', rating: 4.8, img: 236010, desc: 'Fresh, pasteurized whole milk from grass-fed cows in the Eastern Region.' },
-  { id: 9, name: 'Green Pepper', category: 'Vegetables', price: 18, unit: 'kg', stock: 60, seller: 'Kofi Farms', rating: 4.3, img: 186840, desc: 'Crisp green bell peppers, great for stews, stir-fries, and salads.' },
+  { id: 1, name: 'Fresh Tomatoes', category: 'Vegetables', price: 15, unit: 'kg', stock: 120, seller: 'Asaase Farms', rating: 4.8, img: 24595911, desc: 'Freshly harvested tomatoes grown in the rich soils of the Eastern Region.' },
+  { id: 2, name: 'Maize (Dried)', category: 'Grains', price: 8, unit: 'bag (50kg)', stock: 200, seller: 'Kofi Farms', rating: 4.6, img: 9608913, desc: 'Quality dried maize from the Ashanti Region. Great for milling and kenkey.' },
+  { id: 3, name: 'Free-Range Eggs', category: 'Poultry', price: 30, unit: 'crate', stock: 80, seller: 'Akua Poultry', rating: 4.9, img: 22764391, desc: 'Farm-fresh free-range eggs from healthy hens in the Central Region.' },
+  { id: 4, name: 'Pure Honey', category: 'Specialty', price: 80, unit: 'jar (500ml)', stock: 50, seller: 'Ananse Apiary', rating: 5.0, img: 5634207, desc: 'Pure, raw honey from the Brong-Ahafo Region. No additives.' },
+  { id: 5, name: 'Fresh Spinach', category: 'Vegetables', price: 10, unit: 'bunch', stock: 90, seller: 'Asaase Farms', rating: 4.5, img: 28797268, desc: 'Crisp, tender spinach leaves (kontomire). Washed and ready to cook.' },
+  { id: 6, name: 'Ripe Plantain', category: 'Fruits', price: 12, unit: 'bunch', stock: 150, seller: 'Nana Farms', rating: 4.7, img: 34635760, desc: 'Sweet ripe plantains from the Western Region. Perfect for kelewele.' },
+  { id: 7, name: 'Local Rice', category: 'Grains', price: 25, unit: 'bag (25kg)', stock: 70, seller: 'Volta Rice Mills', rating: 4.4, img: 18328392, desc: 'Premium local rice from the Volta Region. Stone-free and aromatic.' },
+  { id: 8, name: 'Fresh Milk', category: 'Dairy', price: 20, unit: 'liter', stock: 100, seller: 'Akua Poultry', rating: 4.8, img: 5946755, desc: 'Fresh, pasteurized whole milk from grass-fed cows in the Eastern Region.' },
+  { id: 9, name: 'Green Pepper', category: 'Vegetables', price: 18, unit: 'kg', stock: 60, seller: 'Kofi Farms', rating: 4.3, img: 7511807, desc: 'Crisp green bell peppers, great for stews, stir-fries, and salads.' },
   { id: 10, name: 'Watermelon', category: 'Fruits', price: 15, unit: 'piece', stock: 40, seller: 'Nana Farms', rating: 4.9, img: 1313267, desc: 'Sweet, juicy watermelons from the Northern Region.' },
-  { id: 11, name: 'Yam (Pona)', category: 'Tubers', price: 20, unit: 'tuber', stock: 110, seller: 'Savannah Farms', rating: 4.5, img: 16839719, desc: 'Premium Pona yam from the Northern Region. Perfect for fufu.' },
-  { id: 12, name: 'Smoked Fish', category: 'Specialty', price: 35, unit: 'kg', stock: 30, seller: 'Ananse Apiary', rating: 4.7, img: 699544, desc: 'Quality smoked tilapia from Lake Volta. Ready for soups and stews.' },
+  { id: 11, name: 'Yam (Pona)', category: 'Tubers', price: 20, unit: 'tuber', stock: 110, seller: 'Savannah Farms', rating: 4.5, img: 34143558, desc: 'Premium Pona yam from the Northern Region. Perfect for fufu.' },
+  { id: 12, name: 'Smoked Fish', category: 'Specialty', price: 35, unit: 'kg', stock: 30, seller: 'Ananse Apiary', rating: 4.7, img: 33937245, desc: 'Quality smoked tilapia from Lake Volta. Ready for soups and stews.' },
+  { id: 13, name: 'Fresh Onions', category: 'Vegetables', price: 12, unit: 'kg', stock: 130, seller: 'Kofi Farms', rating: 4.4, img: 25037071, desc: 'Fresh, pungent onions from the Northern Region. Essential for every kitchen.' },
+  { id: 14, name: 'Cassava', category: 'Tubers', price: 10, unit: 'tuber', stock: 95, seller: 'Savannah Farms', rating: 4.3, img: 7543161, desc: 'Fresh cassava tubers from the Eastern Region. Great for gari, fufu, and tapioca.' },
+  { id: 15, name: 'Groundnuts', category: 'Specialty', price: 22, unit: 'kg', stock: 75, seller: 'Nana Farms', rating: 4.6, img: 9799045, desc: 'Roasted groundnuts (peanuts) from the Northern Region. Rich in protein.' },
+  { id: 16, name: 'Fresh Ginger', category: 'Vegetables', price: 25, unit: 'kg', stock: 55, seller: 'Asaase Farms', rating: 4.7, img: 10899474, desc: 'Aromatic fresh ginger root from the Eastern Region. Perfect for cooking and tea.' },
+  { id: 17, name: 'Avocado', category: 'Fruits', price: 18, unit: 'piece', stock: 65, seller: 'Nana Farms', rating: 4.8, img: 13982787, desc: 'Ripe, creamy avocados from the Western Region. Great for salads and sandwiches.' },
+  { id: 18, name: 'Red Pepper (Chili)', category: 'Vegetables', price: 20, unit: 'kg', stock: 48, seller: 'Kofi Farms', rating: 4.5, img: 11659382, desc: 'Hot red chili peppers from the Ashanti Region. Add some heat to your dishes.' },
+  { id: 19, name: 'Cabbage', category: 'Vegetables', price: 14, unit: 'head', stock: 70, seller: 'Asaase Farms', rating: 4.2, img: 19870193, desc: 'Fresh, crisp cabbage heads from the Eastern Region. Perfect for salads and stews.' },
+  { id: 20, name: 'Okra', category: 'Vegetables', price: 16, unit: 'kg', stock: 52, seller: 'Kofi Farms', rating: 4.4, img: 5392139, desc: 'Fresh okra pods from the Ashanti Region. Great for soups and stews.' },
+  { id: 21, name: 'Fresh Carrots', category: 'Vegetables', price: 12, unit: 'kg', stock: 88, seller: 'Asaase Farms', rating: 4.6, img: 9741176, desc: 'Sweet, crunchy carrots from the Eastern Region. Great for cooking and juicing.' },
+  { id: 22, name: 'Pineapple', category: 'Fruits', price: 20, unit: 'piece', stock: 45, seller: 'Nana Farms', rating: 4.9, img: 8205858, desc: 'Sweet, juicy pineapples from the Central Region. Perfectly ripe.' },
+  { id: 23, name: 'Mango', category: 'Fruits', price: 15, unit: 'piece', stock: 60, seller: 'Nana Farms', rating: 4.8, img: 7156058, desc: 'Sweet, ripe mangoes from the Western Region. Great for eating fresh or smoothies.' },
+  { id: 24, name: 'Coconut', category: 'Fruits', price: 10, unit: 'piece', stock: 35, seller: 'Savannah Farms', rating: 4.5, img: 26699770, desc: 'Fresh coconuts from the Western Region. Full of refreshing coconut water.' },
 ];
 
 const CATEGORIES = ['Vegetables', 'Grains', 'Poultry', 'Dairy', 'Fruits', 'Tubers', 'Specialty'];
@@ -43,8 +55,6 @@ const Store = {
   saveNotifications: (d) => saveStore('agri_notifications', d),
   users: () => getStore('agri_users'),
   saveUsers: (d) => saveStore('agri_users', d),
-  messages: () => getStore('agri_messages'),
-  saveMessages: (d) => saveStore('agri_messages', d),
 };
 
 // ---- Auth ----
